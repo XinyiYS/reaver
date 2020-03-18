@@ -83,6 +83,8 @@ def main(argv):
     agent = rvr.agents.registry[args.agent](env.obs_spec(), env.act_spec(), sess_mgr=sess_mgr, n_envs=args.n_envs)
     agent.logger = rvr.utils.StreamLogger(args.n_envs, args.log_freq, args.log_eps_avg, sess_mgr, expt.log_path)
 
+    print("Loading the submodule reaver from my own repo")
+    print("the object class of the agent is {}".format(type(agent)))
     if sess_mgr.training_enabled:
         expt.save_gin_config()
         expt.save_model_summary(agent.model)
