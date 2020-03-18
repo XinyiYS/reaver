@@ -7,6 +7,7 @@ class RunningAgent(Agent):
     """
     Generic abstract class, defines API for interacting with an environment
     """
+
     def __init__(self):
         self.next_obs = None
         self.start_step = 0
@@ -50,6 +51,7 @@ class SyncRunningAgent(RunningAgent):
     Abstract class that handles synchronous multiprocessing via MultiProcEnv helper
     Not meant to be used directly, extending classes automatically get the feature
     """
+
     def __init__(self, n_envs):
         RunningAgent.__init__(self)
         self.n_envs = n_envs
