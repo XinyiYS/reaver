@@ -63,14 +63,6 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         env.stop()
         self.on_finish()
 
-    def _get_chat_message(env):
-        reaver_sc2env = env.envs[0]._env
-        try:
-            chat_received = reaver_sc2env._get_chat_message()
-        except Excetion as e:
-            pass
-        return
-
     def get_action_and_value(self, obs):
         if not self.message_hub:
             subagent_index = 0  # default use the first sub_module
