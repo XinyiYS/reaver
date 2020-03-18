@@ -8,7 +8,8 @@ from pysc2.lib import protocol
 from pysc2.env.environment import StepType
 from . import Env, Spec, Space
 
-ACTIONS_MINIGAMES, ACTIONS_MINIGAMES_ALL, ACTIONS_ALL = ['minigames', 'minigames_all', 'all']
+ACTIONS_MINIGAMES, ACTIONS_MINIGAMES_ALL, ACTIONS_ALL = [
+    'minigames', 'minigames_all', 'all']
 
 
 @gin.configurable
@@ -21,6 +22,7 @@ class SC2Env(Env):
     You can also specify your own action set in the gin config file under SC2Env.action_ids
     Full list of available actions https://github.com/deepmind/pysc2/blob/master/pysc2/lib/actions.py#L447-L1008
     """
+
     def __init__(
         self,
         map_name='MoveToBeacon',
@@ -40,11 +42,13 @@ class SC2Env(Env):
 
         # sensible action set for all minigames
         if not action_ids or action_ids in [ACTIONS_MINIGAMES, ACTIONS_MINIGAMES_ALL]:
-            action_ids = [0, 1, 2, 3, 4, 6, 7, 12, 13, 42, 44, 50, 91, 183, 234, 309, 331, 332, 333, 334, 451, 452, 490]
+            action_ids = [0, 1, 2, 3, 4, 6, 7, 12, 13, 42, 44, 50,
+                          91, 183, 234, 309, 331, 332, 333, 334, 451, 452, 490]
 
         # some additional actions for minigames (not necessary to solve)
         if action_ids == ACTIONS_MINIGAMES_ALL:
-            action_ids += [11, 71, 72, 73, 74, 79, 140, 168, 239, 261, 264, 269, 274, 318, 335, 336, 453, 477]
+            action_ids += [11, 71, 72, 73, 74, 79, 140, 168,
+                           239, 261, 264, 269, 274, 318, 335, 336, 453, 477]
 
         # full action space, including outdated / unusable to current race / usable only in certain cases
         if action_ids == ACTIONS_ALL:
@@ -81,10 +85,7 @@ class SC2Env(Env):
                 rgb_minimap=None
             )],
             step_mul=self.step_mul,
-            players=[sc2_env.Agent(sc2_env.Race.terran)]) 
-        print("The sc2 environment has started: there should be an instance of sc2env")
-        print("The instance should be able to access chat, and give", self._env._renderer_human)
-        print()
+            players=[sc2_env.Agent(sc2_env.Race.terran)])
 
     def step(self, action):
         try:
@@ -93,7 +94,8 @@ class SC2Env(Env):
             print("error in ", str(e))
             pass
         try:
-            obs, reward, done = self.obs_wrapper(self._env.step(self.act_wrapper(action)))
+            obs, reward, done = self.obs_wrapper(
+                self._env.step(self.act_wrapper(action)))
         except protocol.ConnectionError:
             # hacky fix from websocket timeout issue...
             # this results in faulty reward signals, but I guess it beats completely crashing...
@@ -105,6 +107,7 @@ class SC2Env(Env):
 
         return obs, reward, done
 
+    # TODO implement this function better and implement the interaction with message_hub
     def _get_chat_message(self):
         if not self._env:
             print("The pysc2 sc2env instance has not been initialized")
@@ -125,9 +128,7 @@ class SC2Env(Env):
                         'out'):
                 print("received-> {} <-".format(received_command))
                 self._env.send_chat_messages([
-                    "roger the command: {}".format(
-                        received_command)
-                ])
+                    "roger the command: {}".format(received_command)])
         return chat_receieved
 
     def reset(self):
@@ -174,8 +175,10 @@ class ObservationWrapper:
         self.features = _features
         self.action_ids = action_ids
 
-        screen_feature_to_idx = {feat: idx for idx, feat in enumerate(features.SCREEN_FEATURES._fields)}
-        minimap_feature_to_idx = {feat: idx for idx, feat in enumerate(features.MINIMAP_FEATURES._fields)}
+        screen_feature_to_idx = {feat: idx for idx, feat in enumerate(
+            features.SCREEN_FEATURES._fields)}
+        minimap_feature_to_idx = {feat: idx for idx, feat in enumerate(
+            features.MINIMAP_FEATURES._fields)}
 
         self.feature_masks = {
             'screen': [screen_feature_to_idx[f] for f in _features['screen']],
@@ -192,7 +195,8 @@ class ObservationWrapper:
         ]
         for feat_name in self.features['non-spatial']:
             if feat_name == 'available_actions':
-                fn_ids_idxs = [i for i, fn_id in enumerate(self.action_ids) if fn_id in obs[feat_name]]
+                fn_ids_idxs = [i for i, fn_id in enumerate(
+                    self.action_ids) if fn_id in obs[feat_name]]
                 mask = np.zeros((len(self.action_ids),), dtype=np.int32)
                 mask[fn_ids_idxs] = 1
                 obs[feat_name] = mask
@@ -207,14 +211,20 @@ class ObservationWrapper:
             'available_actions': (len(self.action_ids), ),
         }
 
-        screen_shape = (len(self.features['screen']), *spec['feature_screen'][1:])
-        minimap_shape = (len(self.features['minimap']), *spec['feature_minimap'][1:])
-        screen_dims = get_spatial_dims(self.features['screen'], features.SCREEN_FEATURES)
-        minimap_dims = get_spatial_dims(self.features['minimap'], features.MINIMAP_FEATURES)
+        screen_shape = (
+            len(self.features['screen']), *spec['feature_screen'][1:])
+        minimap_shape = (
+            len(self.features['minimap']), *spec['feature_minimap'][1:])
+        screen_dims = get_spatial_dims(
+            self.features['screen'], features.SCREEN_FEATURES)
+        minimap_dims = get_spatial_dims(
+            self.features['minimap'], features.MINIMAP_FEATURES)
 
         spaces = [
-            SC2Space(screen_shape, 'screen', self.features['screen'], screen_dims),
-            SC2Space(minimap_shape, 'minimap', self.features['minimap'], minimap_dims),
+            SC2Space(screen_shape, 'screen',
+                     self.features['screen'], screen_dims),
+            SC2Space(minimap_shape, 'minimap',
+                     self.features['minimap'], minimap_dims),
         ]
 
         for feat in self.features['non-spatial']:
@@ -268,7 +278,8 @@ class ActionWrapper:
                     arg = [arg]
                 # pysc2 expects spatial coords, but we have flattened => attempt to fix
                 if len(arg_type.sizes) > 1 and len(arg) == 1:
-                    arg = [arg[0] % self.spatial_dim, arg[0] // self.spatial_dim]
+                    arg = [arg[0] % self.spatial_dim,
+                           arg[0] // self.spatial_dim]
                 args.append(arg)
             else:
                 args.append([defaults[arg_name]])
@@ -282,9 +293,11 @@ class ActionWrapper:
         for arg_name in self.args:
             arg = getattr(spec.types, arg_name)
             if len(arg.sizes) > 1:
-                spaces.append(Space(domain=(0, arg.sizes), categorical=True, name=arg_name))
+                spaces.append(Space(domain=(0, arg.sizes),
+                                    categorical=True, name=arg_name))
             else:
-                spaces.append(Space(domain=(0, arg.sizes[0]), categorical=True, name=arg_name))
+                spaces.append(
+                    Space(domain=(0, arg.sizes[0]), categorical=True, name=arg_name))
 
         self.spec = Spec(spaces, "Action")
 
@@ -303,7 +316,8 @@ class SC2FuncIdSpace(Space):
         super().__init__(domain=(0, len(func_ids)), categorical=True, name="function_id")
         self.args_mask = []
         for fn_id in func_ids:
-            fn_id_args = [arg_type.name for arg_type in actions.FUNCTIONS[fn_id].args]
+            fn_id_args = [
+                arg_type.name for arg_type in actions.FUNCTIONS[fn_id].args]
             self.args_mask.append([arg in fn_id_args for arg in args])
 
 
