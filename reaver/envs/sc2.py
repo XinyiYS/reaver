@@ -72,7 +72,8 @@ class SC2Env(Env):
 
         self._env = sc2_env.SC2Env(
             map_name=self.id,
-            visualize=self.render,
+            visualize=True,  # visualize needs to be true to send chat
+            # visualize=self.render,# visualize needs to be true to send chat
             agent_interface_format=[features.parse_agent_interface_format(
                 feature_screen=self.spatial_dim,
                 feature_minimap=self.spatial_dim,
@@ -80,9 +81,17 @@ class SC2Env(Env):
                 rgb_minimap=None
             )],
             step_mul=self.step_mul,
-            players=[sc2_env.Agent(sc2_env.Race.terran)])
+            players=[sc2_env.Agent(sc2_env.Race.terran)]) 
+        print("The sc2 environment has started: there should be an instance of sc2env")
+        print("The instance should be able to access chat, and give", self._env._renderer_human)
+        print()
 
     def step(self, action):
+        try:
+            self._get_chat_message()
+        except Exception as e:
+            print("error in ", str(e))
+            pass
         try:
             obs, reward, done = self.obs_wrapper(self._env.step(self.act_wrapper(action)))
         except protocol.ConnectionError:
@@ -95,6 +104,31 @@ class SC2Env(Env):
             obs = self.reset()
 
         return obs, reward, done
+
+    def _get_chat_message(self):
+        if not self._env:
+            print("The pysc2 sc2env instance has not been initialized")
+            return
+
+        if not self._env._renderer_human:
+            print("The pysc2 sc2env instance is initialized without support for chat")
+            return
+
+        chat_receieved = self._env._renderer_human._obs.chat
+        if chat_receieved:
+            received = chat_receieved.pop()
+            player_id = received.player_id
+            received_command = received.message
+
+            if received_command and player_id == 1 and not received_command.startswith(
+                    'roger') and not received_command.endswith(
+                        'out'):
+                print("received-> {} <-".format(received_command))
+                self._env.send_chat_messages([
+                    "roger the command: {}".format(
+                        received_command)
+                ])
+        return chat_receieved
 
     def reset(self):
         try:
