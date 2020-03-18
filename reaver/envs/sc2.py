@@ -89,13 +89,11 @@ class SC2Env(Env):
 
     def step(self, action):
         try:
-            self._get_chat_message()
-        except Exception as e:
-            print("error in ", str(e))
-            pass
-        try:
             obs, reward, done = self.obs_wrapper(
-                self._env.step(self.act_wrapper(action)))
+                self._env.step(self.act_wrapper(action)))  # self._env is of type <class 'pysc2.env.sc2_env.SC2Env'>
+            message = _get_chat_message(self._env)
+            if message:
+                print("got your message {}".format(message))
         except protocol.ConnectionError:
             # hacky fix from websocket timeout issue...
             # this results in faulty reward signals, but I guess it beats completely crashing...
@@ -106,30 +104,6 @@ class SC2Env(Env):
             obs = self.reset()
 
         return obs, reward, done
-
-    # TODO implement this function better and implement the interaction with message_hub
-    def _get_chat_message(self):
-        if not self._env:
-            print("The pysc2 sc2env instance has not been initialized")
-            return
-
-        if not self._env._renderer_human:
-            print("The pysc2 sc2env instance is initialized without support for chat")
-            return
-
-        chat_receieved = self._env._renderer_human._obs.chat
-        if chat_receieved:
-            received = chat_receieved.pop()
-            player_id = received.player_id
-            received_command = received.message
-
-            if received_command and player_id == 1 and not received_command.startswith(
-                    'roger') and not received_command.endswith(
-                        'out'):
-                print("received-> {} <-".format(received_command))
-                self._env.send_chat_messages([
-                    "roger the command: {}".format(received_command)])
-        return chat_receieved
 
     def reset(self):
         try:
@@ -329,3 +303,31 @@ def get_spatial_dims(feat_names, feats):
         if feat.type == features.FeatureType.CATEGORICAL:
             feats_dims[-1] = feat.scale
     return feats_dims
+
+
+# TODO implement this function better and implement the interaction with message_hub
+def _get_chat_message(env):
+    """
+    env : <class 'pysc2.env.sc2_env.SC2Env'>
+    """
+    if not env:
+        print("The pysc2 sc2env instance has not been initialized")
+        return
+
+    if not env._renderer_human:
+        print("The pysc2 sc2env instance is initialized without support for chat")
+        return
+
+    chat_receieved = env._renderer_human._obs.chat
+    if chat_receieved:
+        received = chat_receieved.pop()
+        player_id = received.player_id
+        received_command = received.message
+
+        if received_command and player_id == 1 and not received_command.startswith(
+                'roger') and not received_command.endswith(
+                    'out'):
+            # print("received-> {} <-".format(received_command))
+            env.send_chat_messages([
+                "roger the command: {}".format(received_command)])
+        return received_command
