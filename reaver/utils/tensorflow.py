@@ -5,16 +5,17 @@ gin.external_configurable(tf.train.RMSPropOptimizer, module='tf.train')
 gin.external_configurable(tf.train.get_global_step, module='tf.train')
 gin.external_configurable(tf.train.piecewise_constant, module='tf.train')
 gin.external_configurable(tf.train.polynomial_decay, module='tf.train')
-gin.external_configurable(tf.initializers.orthogonal, 'tf.initializers.orthogonal')
+gin.external_configurable(tf.initializers.orthogonal,
+                          'tf.initializers.orthogonal')
 
 
 class SessionManager:
     def __init__(self, sess=None, base_path='results/', checkpoint_freq=100, training_enabled=True):
-        
+
         if not sess:
             print("Creating a new session allowing gpu growth")
-            config = tf.ConfigProto(allow_soft_placements=True, log_device_placement=True)
-            config.gpu_options.allow_growth=True
+            config = tf.ConfigProto(allow_soft_placements=True)
+            config.gpu_options.allow_growth = True
             sess = tf.Session(config=config)
             #sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
         tf.keras.backend.set_session(sess)
@@ -51,7 +52,8 @@ class SessionManager:
         if not self.checkpoint_freq or not self.training_enabled or step % self.checkpoint_freq:
             return
 
-        self.saver.save(self.sess, self.checkpoints_path + '/ckpt', global_step=step)
+        self.saver.save(self.sess, self.checkpoints_path +
+                        '/ckpt', global_step=step)
 
     def add_summaries(self, tags, values, prefix='', step=None):
         for tag, value in zip(tags, values):
