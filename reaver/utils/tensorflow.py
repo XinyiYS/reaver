@@ -13,8 +13,7 @@ class SessionManager:
     def __init__(self, sess=None, base_path='results/', checkpoint_freq=100, training_enabled=True):
 
         if not sess:
-            print("Creating a new session allowing gpu growth")
-            config = tf.ConfigProto(allow_soft_placements=True)
+            config = tf.ConfigProto(allow_soft_placement=True)
             config.gpu_options.allow_growth = True
             sess = tf.Session(config=config)
             #sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
