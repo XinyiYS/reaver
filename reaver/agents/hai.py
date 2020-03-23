@@ -51,26 +51,23 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         obs, *_ = env.reset()
         obs = [o.copy() for o in obs]
         for step in range(self.start_step, self.start_step + n_steps):
-            chat_message = self._get_chat_message(env)
-            if chat_message:
-                print(chat_message)
-
+            received_message = env.listen()
+            self.parse_message(received_message)
             action, value = self.get_action_and_value(obs)
             self.next_obs, reward, done = env.step(action)
-            # self.next_obs, reward, done, chat_message = env.step_with_chat_message(action)
             self.on_step(step, obs, action, reward, done, value)
             obs = [o.copy() for o in self.next_obs]
         env.stop()
         self.on_finish()
 
-    def get_action_and_value(self, obs):
-        if not self.message_hub:
-            subagent_index = 0  # default use the first sub_module
-        else:
-            message = self.message_hub.pop()
-            subagent_index = self._select_subagent(message)
+    # def get_action_and_value(self, obs):
+    #     if not self.message_hub:
+    #         subagent_index = 0  # default use the first sub_module
+    #     else:
+    #         message = self.message_hub.pop()
+    #         subagent_index = self._select_subagent(message)
 
-        return self.subagents[subagent_index].get_action(obs), None
+    #     return self.subagents[subagent_index].get_action(obs), None
 
     def _select_subagent(self, message):
         """
@@ -84,3 +81,6 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         else:
             print("invalid message, selecting default sub_module")
             return 0
+
+    def parse_message(self, message):
+        print("Printing from <reaver.reaver.agents.hai> class: {}".format(message))

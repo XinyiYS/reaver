@@ -3,7 +3,7 @@ from multiprocessing import Pipe, Process
 from . import Env
 
 START, STEP, RESET, STOP, DONE = range(5)
-
+LISTEN = 5
 
 class MsgProcEnv(Env):
     def __init__(self, env):
@@ -19,6 +19,9 @@ class MsgProcEnv(Env):
 
     def step(self, act):
         self.conn.send((STEP, act))
+
+    def listen():
+        self.conn.send((LISTEN, None))
 
     def reset(self):
         self.conn.send((RESET, None))
@@ -44,6 +47,9 @@ class MsgProcEnv(Env):
             elif msg == STEP:
                 obs, rew, done = self._env.step(data)
                 self.w_conn.send((obs, rew, done))
+            elif msg == LISTEN:
+                received_msg = self._env.listen_to_chat_channel()
+                self.w_conn.send((received_msg))
             elif msg == RESET:
                 obs = self._env.reset()
                 self.w_conn.send((obs, -1, -1))
@@ -70,6 +76,12 @@ class MsgMultiProcEnv(Env):
         for idx, env in enumerate(self.envs):
             env.step([a[idx] for a in actions])
         return self._observe()
+
+    def listen(self):
+        for idx, env in enumerate(self.envs):
+            env.listen()
+        received_messages = zip(*self.wait())
+        return received_messages
 
     def reset(self):
         for e in self.envs:

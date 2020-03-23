@@ -91,9 +91,9 @@ class SC2Env(Env):
         try:
             obs, reward, done = self.obs_wrapper(
                 self._env.step(self.act_wrapper(action)))  # self._env is of type <class 'pysc2.env.sc2_env.SC2Env'>
-            message = _get_chat_message(self._env)
-            if message:
-                print("got your message {}".format(message))
+            # message = _get_chat_message(self._env)
+            # if message:
+            #     print("got your message {}".format(message))
         except protocol.ConnectionError:
             # hacky fix from websocket timeout issue...
             # this results in faulty reward signals, but I guess it beats completely crashing...
@@ -105,6 +105,19 @@ class SC2Env(Env):
 
         return obs, reward, done
 
+    def listen_to_chat_channel(self):
+        message = None
+        try:
+            message = _get_chat_message(self._env)
+            if message and not message.startswith('roger'):
+                print("Printing from <reaver.SC2Env> class: got your message {}".format(message))
+        except protocol.ConnectionError:
+            # hacky fix from websocket timeout issue...
+            # this results in faulty reward signals, but I guess it beats completely crashing...
+            self.restart()
+            return self.reset(), 0, 1
+        return message
+
     def reset(self):
         try:
             obs, reward, done = self.obs_wrapper(self._env.reset())
@@ -113,7 +126,6 @@ class SC2Env(Env):
             # this results in faulty reward signals, but I guess it beats completely crashing...
             self.restart()
             return self.reset()
-
         return obs
 
     def stop(self):
@@ -329,5 +341,5 @@ def _get_chat_message(env):
                     'out'):
             # print("received-> {} <-".format(received_command))
             env.send_chat_messages([
-                "roger the command: {}".format(received_command)])
+                "roger : {}".format(received_command)])
         return received_command
