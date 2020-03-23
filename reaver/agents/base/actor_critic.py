@@ -151,8 +151,7 @@ class ActorCriticAgent(MemoryAgent):
         return adv, returns
 
     def on_start(self):
-        # self.logger.on_start()
-        pass
+        self.logger.on_start()
 
     def on_finish(self):
         self.logger.on_finish()
