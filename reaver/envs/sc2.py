@@ -43,7 +43,7 @@ class SC2Env(Env):
         # sensible action set for all minigames
         if not action_ids or action_ids in [ACTIONS_MINIGAMES, ACTIONS_MINIGAMES_ALL]:
             action_ids = [0, 1, 2, 3, 4, 6, 7, 12, 13, 42, 44, 50,
-                          91, 183, 234, 309, 331, 332, 333, 334, 451, 452, 490]
+                          91, 183, 234, 309, 331, 332, 333, 334, 451, 477, 452, 490]
 
         # some additional actions for minigames (not necessary to solve)
         if action_ids == ACTIONS_MINIGAMES_ALL:
