@@ -25,7 +25,7 @@ class RunningAgent(Agent):
         self.on_start()
         obs, *_ = env.reset()
         obs = [o.copy() for o in obs]
-        print("a total of {} parallel envs".format(str(len(env.envs))))
+        print("Printed from <RunningAgent> class: a total of {} parallel env(s)".format(str(len(env.envs))))
         for step in range(self.start_step, self.start_step + n_steps):
             action, value = self.get_action_and_value(obs)
             self.next_obs, reward, done = env.step(action)
