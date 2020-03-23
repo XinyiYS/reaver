@@ -27,10 +27,15 @@ class RunningAgent(Agent):
         obs = [o.copy() for o in obs]
         print("Printed from <RunningAgent> class: a total of {} parallel env(s)".format(str(len(env.envs))))
         for step in range(self.start_step, self.start_step + n_steps):
+            print("getting the action-value prediction")
             action, value = self.get_action_and_value(obs)
+            print("action-value prediction successful")
             self.next_obs, reward, done = env.step(action)
+            print("environment step successful, obs-reward-done triplet is received")
             self.on_step(step, obs, action, reward, done, value)
+            print("training on_step successful")
             obs = [o.copy() for o in self.next_obs]
+            print("element-wise copying of observation successful")
         env.stop()
         self.on_finish()
 

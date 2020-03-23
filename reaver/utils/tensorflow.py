@@ -10,8 +10,13 @@ gin.external_configurable(tf.initializers.orthogonal, 'tf.initializers.orthogona
 
 class SessionManager:
     def __init__(self, sess=None, base_path='results/', checkpoint_freq=100, training_enabled=True):
+        
         if not sess:
-            sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+            print("Creating a new session allowing gpu growth")
+            config = tf.ConfigProto(allow_soft_placements=True, log_device_placement=True)
+            config.gpu_options.allow_growth=True
+            sess = tf.Session(config=config)
+            #sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
         tf.keras.backend.set_session(sess)
 
         self.sess = sess
@@ -39,7 +44,10 @@ class SessionManager:
         self.sess.graph.finalize()
 
     def run(self, tf_op, tf_inputs, inputs):
-        return self.sess.run(tf_op, feed_dict=dict(zip(tf_inputs, inputs)))
+        print("execute a run in session: wait for the execution complete message")
+        results = self.sess.run(tf_op, feed_dict=dict(zip(tf_inputs, inputs)))
+        print("execution of a run in session complete")
+        return results
 
     def on_update(self, step):
         if not self.checkpoint_freq or not self.training_enabled or step % self.checkpoint_freq:
