@@ -20,7 +20,7 @@ class MsgProcEnv(Env):
     def step(self, act):
         self.conn.send((STEP, act))
 
-    def listen():
+    def listen(self):
         self.conn.send((LISTEN, None))
 
     def reset(self):
@@ -80,8 +80,11 @@ class MsgMultiProcEnv(Env):
     def listen(self):
         for idx, env in enumerate(self.envs):
             env.listen()
-        received_messages = zip(*self.wait())
-        return received_messages
+        # only return the latest non-empty message
+        received_message = [message for message in self.wait() if message]
+        #TODO add in a better logic for filtering useless message
+        if len(received_message) > 0:
+            return received_message[0]
 
     def reset(self):
         for e in self.envs:

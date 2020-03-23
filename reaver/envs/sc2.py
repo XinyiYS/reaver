@@ -109,8 +109,6 @@ class SC2Env(Env):
         message = None
         try:
             message = _get_chat_message(self._env)
-            if message and not message.startswith('roger'):
-                print("Printing from <reaver.SC2Env> class: got your message {}".format(message))
         except protocol.ConnectionError:
             # hacky fix from websocket timeout issue...
             # this results in faulty reward signals, but I guess it beats completely crashing...

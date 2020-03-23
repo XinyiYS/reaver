@@ -9,7 +9,7 @@ from reaver.agents.base import ActorCriticAgent, DEFAULTS
 from .a2c import AdvantageActorCriticAgent
 
 
-@gin.configurable('HAIAgent')
+# @gin.configurable('A2CAgent')
 class HumanAIInteractionAgent(AdvantageActorCriticAgent):
     """
     HAI: an extension of the existing A2C agent class to
@@ -37,12 +37,12 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         normalize_returns=DEFAULTS['normalize_returns'],
         normalize_advantages=DEFAULTS['normalize_advantages'],
     ):
-        AdvantageActorCriticAgent().__init__(obs_spec, act_spec)
+        AdvantageActorCriticAgent.__init__(self, obs_spec, act_spec, n_envs=n_envs)
 
-        self.subagents = subagents
-        for subagent in self.subagents:
-            subagent.__init__(obs_spec, act_spec)
-            pass
+        # self.subagents = subagents
+        # for subagent in self.subagents:
+        #     subagent.__init__(obs_spec, act_spec)
+        #     pass
 
         self.message_hub = []
 
@@ -51,8 +51,10 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         obs, *_ = env.reset()
         obs = [o.copy() for o in obs]
         for step in range(self.start_step, self.start_step + n_steps):
+            
             received_message = env.listen()
             self.parse_message(received_message)
+
             action, value = self.get_action_and_value(obs)
             self.next_obs, reward, done = env.step(action)
             self.on_step(step, obs, action, reward, done, value)
@@ -83,4 +85,6 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
             return 0
 
     def parse_message(self, message):
-        print("Printing from <reaver.reaver.agents.hai> class: {}".format(message))
+        #TODO add in logic for parsing
+        if message:
+            print("Printing from <reaver.reaver.agents.hai> class: {}".format(message))
