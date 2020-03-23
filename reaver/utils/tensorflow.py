@@ -44,9 +44,7 @@ class SessionManager:
         self.sess.graph.finalize()
 
     def run(self, tf_op, tf_inputs, inputs):
-        print("execute a run in session: wait for the execution complete message")
         results = self.sess.run(tf_op, feed_dict=dict(zip(tf_inputs, inputs)))
-        print("execution of a run in session complete")
         return results
 
     def on_update(self, step):
