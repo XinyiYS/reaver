@@ -90,10 +90,7 @@ class SC2Env(Env):
     def step(self, action):
         try:
             obs, reward, done = self.obs_wrapper(
-                self._env.step(self.act_wrapper(action)))  # self._env is of type <class 'pysc2.env.sc2_env.SC2Env'>
-            # message = _get_chat_message(self._env)
-            # if message:
-            #     print("got your message {}".format(message))
+                self._env.step(self.act_wrapper(action)))
         except protocol.ConnectionError:
             # hacky fix from websocket timeout issue...
             # this results in faulty reward signals, but I guess it beats completely crashing...
@@ -106,15 +103,15 @@ class SC2Env(Env):
         return obs, reward, done
 
     def listen_to_chat_channel(self):
-        message = None
+        '''
+        Returns: a string or None (if no available messages)
+        '''
         try:
-            message = _get_chat_message(self._env)
+            return _get_chat_message(self._env)
         except protocol.ConnectionError:
             # hacky fix from websocket timeout issue...
             # this results in faulty reward signals, but I guess it beats completely crashing...
             self.restart()
-            return self.reset(), 0, 1
-        return message
 
     def reset(self):
         try:
@@ -315,7 +312,7 @@ def get_spatial_dims(feat_names, feats):
     return feats_dims
 
 
-# TODO implement this function better and implement the interaction with message_hub
+# TODO implement this function better
 def _get_chat_message(env):
     """
     env : <class 'pysc2.env.sc2_env.SC2Env'>
@@ -332,12 +329,10 @@ def _get_chat_message(env):
     if chat_receieved:
         received = chat_receieved.pop()
         player_id = received.player_id
-        received_command = received.message
+        received_message = received.message
 
-        if received_command and player_id == 1 and not received_command.startswith(
-                'roger') and not received_command.endswith(
-                    'out'):
-            # print("received-> {} <-".format(received_command))
+        if received_message and player_id == 1 and not received_message.startswith(
+                'roger'):
             env.send_chat_messages([
-                "roger : {}".format(received_command)])
-        return received_command
+                "roger : {}".format(received_message)])
+        return received_message

@@ -2,8 +2,9 @@ import numpy as np
 from multiprocessing import Pipe, Process
 from . import Env
 
-START, STEP, RESET, STOP, DONE = range(5)
-LISTEN = 5
+# LISTEN only needed for Windows, potentially MacOS, since SC2 on linux is headless
+START, STEP, LISTEN, RESET, STOP, DONE = range(6)
+
 
 class MsgProcEnv(Env):
     def __init__(self, env):
@@ -63,6 +64,7 @@ class MsgMultiProcEnv(Env):
     """
     Parallel environments via multiprocessing + pipes
     """
+
     def __init__(self, envs):
         super().__init__(envs[0].id)
         self.envs = [MsgProcEnv(env) for env in envs]
@@ -80,9 +82,10 @@ class MsgMultiProcEnv(Env):
     def listen(self):
         for idx, env in enumerate(self.envs):
             env.listen()
-        # only return the latest non-empty message
+        # only collect the non-empty messages
         received_message = [message for message in self.wait() if message]
-        #TODO add in a better logic for filtering useless message
+        # TODO add in a better logic for filtering useless message
+        # only return the latest
         if len(received_message) > 0:
             return received_message[0]
 
