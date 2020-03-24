@@ -36,14 +36,15 @@ class ActorCriticAgent(MemoryAgent):
 
     Extending classes only need to implement loss_fn method
     """
+
     def __init__(
         self,
         obs_spec: Spec,
         act_spec: Spec,
-        model_fn: ModelBuilder=None,
-        policy_cls: PolicyType=None,
-        sess_mgr: SessionManager=None,
-        optimizer: tf.train.Optimizer=None,
+        model_fn: ModelBuilder = None,
+        policy_cls: PolicyType = None,
+        sess_mgr: SessionManager = None,
+        optimizer: tf.train.Optimizer = None,
         value_coef=DEFAULTS['value_coef'],
         entropy_coef=DEFAULTS['entropy_coef'],
         traj_len=DEFAULTS['traj_len'],
@@ -54,6 +55,7 @@ class ActorCriticAgent(MemoryAgent):
         clip_grads_norm=DEFAULTS['clip_grads_norm'],
         normalize_returns=DEFAULTS['normalize_returns'],
         normalize_advantages=DEFAULTS['normalize_advantages'],
+        n_subagents: int = 0,
     ):
         MemoryAgent.__init__(self, obs_spec, act_spec, traj_len, batch_sz)
 
@@ -61,7 +63,8 @@ class ActorCriticAgent(MemoryAgent):
             sess_mgr = SessionManager()
 
         if not optimizer:
-            optimizer = tf.train.AdamOptimizer(learning_rate=DEFAULTS['learning_rate'])
+            optimizer = tf.train.AdamOptimizer(
+                learning_rate=DEFAULTS['learning_rate'])
 
         self.sess_mgr = sess_mgr
         self.value_coef = value_coef
@@ -72,7 +75,16 @@ class ActorCriticAgent(MemoryAgent):
         self.normalize_returns = normalize_returns
         self.normalize_advantages = normalize_advantages
 
-        self.model = model_fn(obs_spec, act_spec)
+        # implement the a2c to support multiple subagents
+        with tf.variable_scope('main_model'):
+            self.model = model_fn(obs_spec, act_spec)
+
+        # init self.sub_agent_models so these are included in tf_graph
+        self.init_subagent_models([model_fn]*n_subagents,
+                                  [obs_spec]*n_subagents,
+                                  [act_spec]*n_subagents,
+                                  n_subagents)
+
         self.value = self.model.outputs[-1]
         self.policy = policy_cls(act_spec, self.model.outputs[:-1])
         self.loss_op, self.loss_terms, self.loss_inputs = self.loss_fn()
@@ -80,8 +92,10 @@ class ActorCriticAgent(MemoryAgent):
         grads, vars = zip(*optimizer.compute_gradients(self.loss_op))
         self.grads_norm = tf.global_norm(grads)
         if clip_grads_norm > 0.:
-            grads, _ = tf.clip_by_global_norm(grads, clip_grads_norm, self.grads_norm)
-        self.train_op = optimizer.apply_gradients(zip(grads, vars), global_step=sess_mgr.global_step)
+            grads, _ = tf.clip_by_global_norm(
+                grads, clip_grads_norm, self.grads_norm)
+        self.train_op = optimizer.apply_gradients(
+            zip(grads, vars), global_step=sess_mgr.global_step)
         self.minimize_ops = self.make_minimize_ops()
 
         sess_mgr.restore_or_init()
@@ -103,20 +117,23 @@ class ActorCriticAgent(MemoryAgent):
         if not self.batch_ready():
             return
 
-        next_values = self.sess_mgr.run(self.value, self.model.inputs, self.last_obs)
+        next_values = self.sess_mgr.run(
+            self.value, self.model.inputs, self.last_obs)
         adv, returns = self.compute_advantages_and_returns(next_values)
 
         loss_terms, grads_norm = self.minimize(adv, returns)
 
         self.sess_mgr.on_update(self.n_batches)
-        self.logger.on_update(self.n_batches, loss_terms, grads_norm, returns, adv, next_values)
+        self.logger.on_update(self.n_batches, loss_terms,
+                              grads_norm, returns, adv, next_values)
 
     def minimize(self, advantages, returns):
         inputs = self.obs + self.acts + [advantages, returns]
         inputs = [a.reshape(-1, *a.shape[2:]) for a in inputs]
         tf_inputs = self.model.inputs + self.policy.inputs + self.loss_inputs
 
-        loss_terms, grads_norm, *_ = self.sess_mgr.run(self.minimize_ops, tf_inputs, inputs)
+        loss_terms, grads_norm, * \
+            _ = self.sess_mgr.run(self.minimize_ops, tf_inputs, inputs)
 
         return loss_terms, grads_norm
 
@@ -125,7 +142,8 @@ class ActorCriticAgent(MemoryAgent):
         GAE can help with reducing variance of policy gradient estimates
         """
         if self.clip_rewards > 0.0:
-            np.clip(self.rewards, -self.clip_rewards, self.clip_rewards, out=self.rewards)
+            np.clip(self.rewards, -self.clip_rewards,
+                    self.clip_rewards, out=self.rewards)
 
         rewards = self.rewards.copy()
         rewards[-1] += (1-self.dones[-1]) * self.discount * bootstrap_value
@@ -135,10 +153,12 @@ class ActorCriticAgent(MemoryAgent):
         returns = self.discounted_cumsum(rewards, masked_discounts)
 
         if self.gae_lambda > 0.:
-            values = np.append(self.values, np.expand_dims(bootstrap_value, 0), axis=0)
+            values = np.append(self.values, np.expand_dims(
+                bootstrap_value, 0), axis=0)
             # d_t = r_t + g * V(s_{t+1}) - V(s_t)
             deltas = self.rewards + masked_discounts * values[1:] - values[:-1]
-            adv = self.discounted_cumsum(deltas, self.gae_lambda * masked_discounts)
+            adv = self.discounted_cumsum(
+                deltas, self.gae_lambda * masked_discounts)
         else:
             adv = returns - self.values
 
@@ -164,6 +184,15 @@ class ActorCriticAgent(MemoryAgent):
         # note: this will most likely break if model.compile() is used
         ops.extend(self.model.get_updates_for(None))
         return ops
+
+    def init_subagent_models(self, model_fns, obs_specs, act_specs,
+                             n_subagents=0):
+        assert n_subagents == len(model_fns) == len(obs_specs) == act_specs, "The \
+            number of subagents is not equal to the number of model_fns, or obs_specs, or act_specs"
+        self.subagent_models = []
+        for model_fn, obs_spec, act_spec, sub_agent_index in zip(model_fns, obs_specs, act_specs, range(n_subagents)):
+            with tf.variable_scope('subagent_' + str(sub_agent_index)):
+                self.subagent_models.append(model_fn(obs_spec, act_spec))
 
     @staticmethod
     def discounted_cumsum(x, discount):
