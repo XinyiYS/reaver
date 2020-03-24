@@ -10,7 +10,9 @@ gin.external_configurable(tf.initializers.orthogonal,
 
 
 class SessionManager:
-    def __init__(self, sess=None, base_path='results/', checkpoint_freq=100, training_enabled=True):
+    def __init__(self, sess=None, base_path='results/', checkpoint_freq=100,
+                 training_enabled=True, subagent_checkpoints=subagent_checkpoints,
+                 n_subagents=n_subagents):
 
         if not sess:
             config = tf.ConfigProto(allow_soft_placement=True)
@@ -27,10 +29,18 @@ class SessionManager:
         self.global_step = tf.train.get_or_create_global_step()
         self.summary_writer = tf.summary.FileWriter(self.summaries_path)
 
+        assert len(subagent_checkpoints) == n_subagents, "The number of \
+            provided checkpoints is not equal to the number of subagents!"
+        self.subagent_checkpoints = subagent_checkpoints
+        self.n_subagents = n_subagents
+
     def restore_or_init(self):
-        self.saver = tf.train.Saver()
+        # main_model saver
+        self.saver = tf.train.Saver(tf.get_collection(
+            tf.GraphKeys.GLOBAL_VARIABLES, scope='main_model'))
         checkpoint = tf.train.latest_checkpoint(self.checkpoints_path)
         if checkpoint:
+
             self.saver.restore(self.sess, checkpoint)
 
             if self.training_enabled:
@@ -39,9 +49,24 @@ class SessionManager:
                     tf.SessionLog(status=tf.SessionLog.START), self.sess.run(self.global_step))
         else:
             self.sess.run(tf.global_variables_initializer())
+
+        self.restore_subagents()
+
         # this call locks the computational graph into read-only state,
         # as a safety measure against memory leaks caused by mistakingly adding new ops to it
         self.sess.graph.finalize()
+
+    def restore_subagents(self):
+        """
+        Initializes self.subagent_savers
+        Restores the subagent models
+        """
+        self.subagent_savers = []
+        for subagent_idx, subagent_checkpoint in enumerate(self.subagent_checkpoints):
+            subagent_saver = tf.train.Saver(tf.get_collection(
+                tf.GraphKeys.GLOBAL_VARIABLES, scope='subagent_'+str(subagent_idx)))
+            subagent_saver.restore(self.sess, subagent_checkpoint)
+            self.subagent_savers.append(subagent_saver)
 
     def run(self, tf_op, tf_inputs, inputs):
         return self.sess.run(tf_op, feed_dict=dict(zip(tf_inputs, inputs)))
