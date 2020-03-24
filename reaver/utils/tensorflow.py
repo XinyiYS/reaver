@@ -44,8 +44,7 @@ class SessionManager:
         self.sess.graph.finalize()
 
     def run(self, tf_op, tf_inputs, inputs):
-        results = self.sess.run(tf_op, feed_dict=dict(zip(tf_inputs, inputs)))
-        return results
+        return self.sess.run(tf_op, feed_dict=dict(zip(tf_inputs, inputs)))
 
     def on_update(self, step):
         if not self.checkpoint_freq or not self.training_enabled or step % self.checkpoint_freq:
