@@ -20,7 +20,8 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         self,
         obs_spec: Spec,
         act_spec: Spec,
-        subagents=[],  # need to specify a list of subagents: trained agents
+        n_subagents: int = 0,
+        subagents: list = [],  # need to specify a list of subagents: trained agents
         model_fn: ModelBuilder = None,
         policy_cls: PolicyType = None,
         sess_mgr: SessionManager = None,
@@ -61,6 +62,15 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
             obs = [o.copy() for o in self.next_obs]
         env.stop()
         self.on_finish()
+
+    def init_subagent_models(self, model_fns, obs_specs, act_specs, n_subagents=0):
+        assert n_subagents == len(model_fns) == len(obs_specs) == act_specs, "The \
+            number of subagents is not equal to the number of model_fns, or obs_specs, or act_specs"
+        subagent_models = []
+        for model_fn, obs_spec, act_spec, sub_agent_index in zip(model_fns, obs_specs, act_specs, range(n_subagents)):
+            with tf.variable_scope('subagent_' + str(sub_agent_index)):
+                subagent_models.append(model_fn(obs_spec, act_spec))
+        return subagent_models
 
     # def get_action_and_value(self, obs):
     #     if not self.message_hub:
