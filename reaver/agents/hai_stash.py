@@ -47,14 +47,14 @@ class HAIA2CAgent(SyncRunningAgent, HAIActorCriticAgent):
         # currently assume all subagents share the model structure completely
 
         # the main model will be defined in parent class
+        # call the init_subagent_models BEFORE the init of sess_mgr
+        # to include the subagent's variables in the tf_graph
         self.subagent_models = self.init_subagent_models(model_fn, obs_spec, act_spec, 1)
+        
         # sess_mgr.restore_or_init(n_subagents=1)
         if not sess_mgr:
             sess_mgr = SessionManager(subagent_checkpoints=subagents_checkpoints, n_subagents=n_subagents=)
 
-        self.subagent_models = self.init_subagent_models(model_fn, obs_spec, act_spec, 1)
-
-        HumanAIInteractionACAgent().__init__(obs_spec, act_spec, sess_mgr=sess_mgr)
+        HAIActorCriticAgent.__init__(obs_spec, act_spec, sess_mgr=sess_mgr)
 
         self.message_hub = []
-

@@ -9,7 +9,7 @@ from reaver.utils.typing import ModelBuilder, PolicyType
 from reaver.agents.base import ActorCriticAgent, DEFAULTS
 
 
-@gin.configurable('HAIACAgent')
+# @gin.configurable('HAIACAgent')
 class HAIActorCriticAgent(ActorCriticAgent, MemoryAgent):
     """
     Extends the actor_critic class to allow for subagents
@@ -104,19 +104,16 @@ class HAIActorCriticAgent(ActorCriticAgent, MemoryAgent):
 
     # TODO implement the interaction with chat message
     def _run(self, env, n_steps):
-        # @overrides the method in RunningAgent
-
         self.on_start()
         obs, *_ = env.reset()
         obs = [o.copy() for o in obs]
         for step in range(self.start_step, self.start_step + n_steps):
-            chat_message = self._get_chat_message(env)
-            if chat_message:
-                print(chat_message)
+
+            received_message = env.listen()
+            self.parse_message(received_message)
 
             action, value = self.get_action_and_value(obs)
             self.next_obs, reward, done = env.step(action)
-            # self.next_obs, reward, done, chat_message = env.step_with_chat_message(action)
             self.on_step(step, obs, action, reward, done, value)
             obs = [o.copy() for o in self.next_obs]
         env.stop()
