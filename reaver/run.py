@@ -74,7 +74,12 @@ def main(argv):
     gin.parse_config_files_and_bindings(gin_files, args.gin_bindings)
     args.n_envs = min(args.n_envs, gin.query_parameter('ACAgent.batch_sz'))
 
-    sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+    # specifically allow the gpu memory growth:
+    config = tf.ConfigProto(allow_soft_placement=True)
+    config.gpu_options.allow_growth = True
+    sess = tf.Session(config=config)
+    # sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+    
     sess_mgr = rvr.utils.tensorflow.SessionManager(sess, expt.path, args.ckpt_freq, training_enabled=not args.test)
 
     env_cls = rvr.envs.GymEnv if '-v' in args.env else rvr.envs.SC2Env

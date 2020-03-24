@@ -10,6 +10,7 @@ reaver.egg-info/requires.txt
 reaver.egg-info/top_level.txt
 reaver/agents/__init__.py
 reaver/agents/a2c.py
+reaver/agents/hai.py
 reaver/agents/ppo.py
 reaver/agents/random.py
 reaver/agents/base/__init__.py
