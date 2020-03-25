@@ -11,14 +11,14 @@ gin.external_configurable(tf.initializers.orthogonal,
 
 class SessionManager:
     def __init__(self, sess=None, base_path='results/', checkpoint_freq=100,
-                 training_enabled=True, subagent_checkpoints=subagent_checkpoints,
-                 n_subagents=n_subagents):
+                 training_enabled=True, subagent_checkpoints: list = [],
+                 n_subagents: int = 0):
 
         if not sess:
             config = tf.ConfigProto(allow_soft_placement=True)
             config.gpu_options.allow_growth = True
             sess = tf.Session(config=config)
-            #sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
+            # sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
         tf.keras.backend.set_session(sess)
 
         self.sess = sess
