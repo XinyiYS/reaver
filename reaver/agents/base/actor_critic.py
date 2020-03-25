@@ -26,6 +26,7 @@ DEFAULTS = dict(
     normalize_advantages=False,
     model_variable_scope=None,
 )
+LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.agents.base.actor_critic> "
 
 
 @gin.configurable('ACAgent')
@@ -77,7 +78,7 @@ class ActorCriticAgent(MemoryAgent):
         self.normalize_returns = normalize_returns
         self.normalize_advantages = normalize_advantages
 
-        print("Print from <reaver.reaver.agents.base.actor_critic>, the current model_variable_scope is", self.model_variable_scope)
+        print(LOGGING_MSG_HEADER + " : the current model_variable_scope is", self.model_variable_scope)
         # implement the a2c to support multiple subagents
         with tf.variable_scope(self.model_variable_scope):
             self.model = model_fn(obs_spec, act_spec)
