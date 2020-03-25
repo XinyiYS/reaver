@@ -1,6 +1,7 @@
 import os
 import gin
 import tensorflow.compat.v1 as tf
+from tensorflow.python.tools.inspect_checkpoint import print_tensors_in_checkpoint_file
 gin.external_configurable(tf.train.AdamOptimizer, module='tf.train')
 gin.external_configurable(tf.train.RMSPropOptimizer, module='tf.train')
 gin.external_configurable(tf.train.get_global_step, module='tf.train')
@@ -9,7 +10,7 @@ gin.external_configurable(tf.train.polynomial_decay, module='tf.train')
 gin.external_configurable(tf.initializers.orthogonal,
                           'tf.initializers.orthogonal')
 
-
+LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.utils.tensorflow> "
 class SessionManager:
     def __init__(self, sess=None, base_path='results/', checkpoint_freq=100,
                  training_enabled=True, model_variable_scope=None,
@@ -42,6 +43,10 @@ class SessionManager:
         else:
             self.saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope))
 
+        print(LOGGING_MSG_HEADER + "all the tf variables are here: ")
+        [print(var.name) for var in tf.global_variables()]
+        print()
+
         checkpoint = tf.train.latest_checkpoint(self.checkpoints_path)
         if checkpoint:
             self.saver.restore(self.sess, checkpoint)
@@ -53,8 +58,11 @@ class SessionManager:
         else:
             self.sess.run(tf.global_variables_initializer())
 
+        print(LOGGING_MSG_HEADER + ": main model loaded and saver restored.")
+
         if self.n_subagents != 0:
             self.restore_subagents()
+            print(LOGGING_MSG_HEADER + ": subagents' models loaded and savers restored.")
 
         # this call locks the computational graph into read-only state,
         # as a safety measure against memory leaks caused by mistakingly adding new ops to it
@@ -69,7 +77,7 @@ class SessionManager:
             subagent_checkpoints_dir = os.path.join(self.subagents_dir, subagent_dir, 'checkpoints')
             self.subagents[subagent_variable_scope] = tf.train.latest_checkpoint(subagent_checkpoints_dir)
             # e.g. subagent_checkpoints_dir = "results/BuildMarinesWithBarracks_a2c_20-03-23_11-05-25/checkpoints"
-        print("LOGGING from <utils.tensorflow> : loaded subagent checkpoints are ", self.subagents)
+        print(LOGGING_MSG_HEADER + " : loaded subagent checkpoints are ", self.subagents)
 
     def restore_subagents(self):
         """
@@ -81,6 +89,16 @@ class SessionManager:
         self.load_subagents_from_checkpoints()
         self.subagent_savers = []
         for subagent_variable_scope, subagent_checkpoint in self.subagents.items():
+            print(LOGGING_MSG_HEADER)
+            print("loaded checkpoint tensors:")
+            print_tensors_in_checkpoint_file(subagent_checkpoint, all_tensors=False, tensor_name='')
+            print()
+            print("this subagent var list: ")
+            subagent_var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=subagent_variable_scope)
+            # subagent_var_list = rebase_var_list(subagent_var_list)
+
+            [print(var.name) for var in subagent_var_list]
+            print()
             subagent_saver = tf.train.Saver(tf.get_collection(
                 tf.GraphKeys.GLOBAL_VARIABLES, scope=subagent_variable_scope))
 
@@ -114,7 +132,7 @@ class SessionManager:
             self.n_subagents = len(self.subagent_variable_scopes)
         else:
             self.n_subagents = 0
-        print("LOGGING from <utils.tensorflow> Found a total of {} subagents".format(self.n_subagents))
+        print(LOGGING_MSG_HEADER + ": Found a total of {} subagents".format(self.n_subagents))
 
 
     @staticmethod
