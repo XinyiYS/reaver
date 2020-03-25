@@ -9,6 +9,8 @@ from reaver.agents.base import ActorCriticAgent, DEFAULTS
 from .a2c import AdvantageActorCriticAgent
 
 
+LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.agents.hai> "
+
 # @gin.configurable('A2CAgent')
 class HumanAIInteractionAgent(AdvantageActorCriticAgent):
     """
@@ -38,21 +40,16 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         normalize_returns=DEFAULTS['normalize_returns'],
         normalize_advantages=DEFAULTS['normalize_advantages'],
     ):
-        AdvantageActorCriticAgent.__init__(self, obs_spec, act_spec, n_envs=n_envs)
+        AdvantageActorCriticAgent.__init__(self, obs_spec, act_spec, sess_mgr=sess_mgr, n_envs=n_envs)
 
-        # self.subagents = subagents
-        # for subagent in self.subagents:
-        #     subagent.__init__(obs_spec, act_spec)
-        #     pass
-
-        self.message_hub = []
+        self.current_subagent_index = 0
 
     def _run(self, env, n_steps):
         self.on_start()
         obs, *_ = env.reset()
         obs = [o.copy() for o in obs]
         for step in range(self.start_step, self.start_step + n_steps):
-            
+
             received_message = env.listen()
             self.parse_message(received_message)
 
@@ -63,38 +60,30 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         env.stop()
         self.on_finish()
 
-    def init_subagent_models(self, model_fns, obs_specs, act_specs, n_subagents=0):
-        assert n_subagents == len(model_fns) == len(obs_specs) == act_specs, "The \
-            number of subagents is not equal to the number of model_fns, or obs_specs, or act_specs"
-        subagent_models = []
-        for model_fn, obs_spec, act_spec, sub_agent_index in zip(model_fns, obs_specs, act_specs, range(n_subagents)):
-            with tf.variable_scope('subagent_' + str(sub_agent_index)):
-                subagent_models.append(model_fn(obs_spec, act_spec))
-        return subagent_models
-
     # def get_action_and_value(self, obs):
-    #     if not self.message_hub:
-    #         subagent_index = 0  # default use the first sub_module
-    #     else:
-    #         message = self.message_hub.pop()
-    #         subagent_index = self._select_subagent(message)
+        # return self.subagents[self.current_subagent_index].get_action(obs), None
 
-    #     return self.subagents[subagent_index].get_action(obs), None
-
-    def _select_subagent(self, message):
+    def select_subagent(self, message):
         """
         Test phase:
         selecting between a MoveToBeacon agent and a DefeatZerglings agent
         """
         if 'beacon' in message:
+            self.current_subagent_index = 0
             return 0
         elif 'attack' in message:
+            self.current_subagent_index = 1
             return 1
         else:
-            print("invalid message, selecting default sub_module")
+            print(LOGGING_MSG_HEADER + " invalid message, selecting default sub_module")
+            self.current_subagent_index = 0
             return 0
 
     def parse_message(self, message):
-        #TODO add in logic for parsing
-        if message:
-            print("Printing from <reaver.reaver.agents.hai> class: {}".format(message))
+        # TODO add in logic for parsing
+        if message and 'roger' not in message: # filter the roger messages
+            print(LOGGING_MSG_HEADER + " {} ".format(message))
+            self.current_subagent_index = self.select_subagent(message)
+            print("selected agent is : ", self.current_subagent_index)
+            print("selected agent produces the action-value {}  - current subagent index", self.current_subagent_index)
+            print()
