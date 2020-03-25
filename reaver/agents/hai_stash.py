@@ -5,7 +5,7 @@ from reaver.envs.base import Spec
 from reaver.utils import StreamLogger
 from reaver.utils.tensorflow import SessionManager
 from reaver.utils.typing import ModelBuilder, PolicyType
-from reaver.agents.base import ActorCriticAgent, DEFAULTS
+from reaver.agents.base import SyncRunningAgent, ActorCriticAgent, DEFAULTS
 from .a2c import HAIActorCriticAgent
 
 
@@ -50,10 +50,10 @@ class HAIA2CAgent(SyncRunningAgent, HAIActorCriticAgent):
         # call the init_subagent_models BEFORE the init of sess_mgr
         # to include the subagent's variables in the tf_graph
         self.subagent_models = self.init_subagent_models(model_fn, obs_spec, act_spec, 1)
-        
+
         # sess_mgr.restore_or_init(n_subagents=1)
         if not sess_mgr:
-            sess_mgr = SessionManager(subagent_checkpoints=subagents_checkpoints, n_subagents=n_subagents=)
+            sess_mgr = SessionManager(subagent_checkpoints=subagents_checkpoints, n_subagents=n_subagents)
 
         HAIActorCriticAgent.__init__(obs_spec, act_spec, sess_mgr=sess_mgr)
 
