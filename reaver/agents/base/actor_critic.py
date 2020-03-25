@@ -24,6 +24,7 @@ DEFAULTS = dict(
     clip_grads_norm=0.0,
     normalize_returns=False,
     normalize_advantages=False,
+    model_variable_scope=None,
 )
 
 
@@ -41,6 +42,7 @@ class ActorCriticAgent(MemoryAgent):
         self,
         obs_spec: Spec,
         act_spec: Spec,
+        model_variable_scope=DEFAULTS['model_variable_scope'],
         model_fn: ModelBuilder = None,
         policy_cls: PolicyType = None,
         sess_mgr: SessionManager = None,
@@ -55,7 +57,6 @@ class ActorCriticAgent(MemoryAgent):
         clip_grads_norm=DEFAULTS['clip_grads_norm'],
         normalize_returns=DEFAULTS['normalize_returns'],
         normalize_advantages=DEFAULTS['normalize_advantages'],
-        n_subagents: int = 0,
     ):
         MemoryAgent.__init__(self, obs_spec, act_spec, traj_len, batch_sz)
 
@@ -67,6 +68,7 @@ class ActorCriticAgent(MemoryAgent):
                 learning_rate=DEFAULTS['learning_rate'])
 
         self.sess_mgr = sess_mgr
+        self.model_variable_scope = self.sess_mgr.model_variable_scope
         self.value_coef = value_coef
         self.entropy_coef = entropy_coef
         self.discount = discount
@@ -75,15 +77,20 @@ class ActorCriticAgent(MemoryAgent):
         self.normalize_returns = normalize_returns
         self.normalize_advantages = normalize_advantages
 
+        print("Print from <reaver.reaver.agents.base.actor_critic>, the current model_variable_scope is", self.model_variable_scope)
         # implement the a2c to support multiple subagents
-        with tf.variable_scope('main_model'):
+        with tf.variable_scope(self.model_variable_scope):
             self.model = model_fn(obs_spec, act_spec)
+        # self.model = model_fn(obs_spec, act_spec)
 
         # init self.sub_agent_models so these are included in tf_graph
-        self.init_subagent_models([model_fn]*n_subagents,
-                                  [obs_spec]*n_subagents,
-                                  [act_spec]*n_subagents,
-                                  n_subagents)
+        self.n_subagents = self.sess_mgr.n_subagents
+        if self.n_subagents != 0:
+            self.init_subagent_models([model_fn]*self.n_subagents,
+                                    [obs_spec]*self.n_subagents,
+                                    [act_spec]*self.n_subagents,
+                                    self.n_subagents,
+                                    self.sess_mgr.subagent_variable_scopes)
 
         self.value = self.model.outputs[-1]
         self.policy = policy_cls(act_spec, self.model.outputs[:-1])
@@ -186,12 +193,16 @@ class ActorCriticAgent(MemoryAgent):
         return ops
 
     def init_subagent_models(self, model_fns, obs_specs, act_specs,
-                             n_subagents=0):
-        assert n_subagents == len(model_fns) == len(obs_specs) == act_specs, "The \
-            number of subagents is not equal to the number of model_fns, or obs_specs, or act_specs"
+                             n_subagents=0, subagent_variable_scopes=[]):
+        assert n_subagents == len(model_fns) == len(obs_specs) == len(act_specs) == len(
+            subagent_variable_scopes), "The number of subagents is not equal to the number of model_fns, or obs_specs, or act_specs"
         self.subagent_models = []
-        for model_fn, obs_spec, act_spec, sub_agent_index in zip(model_fns, obs_specs, act_specs, range(n_subagents)):
-            with tf.variable_scope('subagent_' + str(sub_agent_index)):
+        self.subagent_variable_scopes = subagent_variable_scopes
+
+        # need to give proper names to the subagent models
+        # for tf.variable_scope loading and saving
+        for model_fn, obs_spec, act_spec, sub_agent_index, subagent_variable_scope in zip(model_fns, obs_specs, act_specs, range(n_subagents), subagent_variable_scopes):
+            with tf.variable_scope(subagent_variable_scope):
                 self.subagent_models.append(model_fn(obs_spec, act_spec))
 
     @staticmethod
