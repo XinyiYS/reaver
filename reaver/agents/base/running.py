@@ -3,7 +3,6 @@ from . import Agent
 from reaver.envs.base import Env, MultiProcEnv
 
 LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.agents.base.running> "
-
 class RunningAgent(Agent):
     """
     Generic abstract class, defines API for interacting with an environment
@@ -26,7 +25,7 @@ class RunningAgent(Agent):
         self.on_start()
         obs, *_ = env.reset()
         obs = [o.copy() for o in obs]
-        print(LOGGING_MSG_HEADER + " : ruuning {} parallel env(s)".format(str(len(env.envs))))
+        print(LOGGING_MSG_HEADER + " : running {} parallel env(s)".format(str(len(env.envs))))
         for step in range(self.start_step, self.start_step + n_steps):
             action, value = self.get_action_and_value(obs)
             self.next_obs, reward, done = env.step(action)
