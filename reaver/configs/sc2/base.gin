@@ -35,3 +35,8 @@ PPOAgent.clip_ratio = 0.2
 PPOAgent.clip_value = 0.0
 
 PPOAgent.normalize_advantages = True
+
+# params for HAI:
+# ==========================================
+HAIAgent.model_fn = @build_fully_conv
+HAIAgent.policy_cls = @SC2MultiPolicy
