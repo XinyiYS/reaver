@@ -11,30 +11,31 @@ gin.external_configurable(tf.initializers.orthogonal,
                           'tf.initializers.orthogonal')
 
 LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.utils.tensorflow> "
+
+
 class SessionManager:
     def __init__(self, sess=None, base_path='results/', checkpoint_freq=100,
-                 training_enabled=True, model_variable_scope=None,
-                 subagents_dir='subagents/'):
-
+                 training_enabled=True, model_variable_scope=None):
         if not sess:
             config = tf.ConfigProto(allow_soft_placement=True)
             config.gpu_options.allow_growth = True
             sess = tf.Session(config=config)
             # sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
-        tf.keras.backend.set_session(sess)
+        # tf.keras.backend.set_session(sess)
 
         self.sess = sess
         self.saver = None
         self.base_path = base_path
         self.checkpoint_freq = checkpoint_freq
         self.training_enabled = training_enabled
-        self.global_step = tf.train.get_or_create_global_step()
-        self.summary_writer = tf.summary.FileWriter(self.summaries_path)
 
+        with self.sess.graph.as_default():
+            with tf.variable_scope(model_variable_scope) as main_tf_vs:
+                self.global_step = tf.train.get_or_create_global_step()
+                self.summary_writer = tf.summary.FileWriter(self.summaries_path)
+
+        self.main_tf_vs = main_tf_vs  # a cleaner way to pass variable_scope
         self.model_variable_scope = model_variable_scope
-        self.subagents_dir = subagents_dir
-
-        self.get_subagent_variable_scopes()
 
     def restore_or_init(self):
         # main_model saver
@@ -42,10 +43,6 @@ class SessionManager:
             self.saver = tf.train.Saver()
         else:
             self.saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope))
-
-        print(LOGGING_MSG_HEADER + "all the tf variables are here: ")
-        [print(var.name) for var in tf.global_variables()]
-        print()
 
         checkpoint = tf.train.latest_checkpoint(self.checkpoints_path)
         if checkpoint:
@@ -58,53 +55,16 @@ class SessionManager:
         else:
             self.sess.run(tf.global_variables_initializer())
 
-        print(LOGGING_MSG_HEADER + ": main model loaded and saver restored.")
-
-        if self.n_subagents != 0:
-            self.restore_subagents()
-            print(LOGGING_MSG_HEADER + ": subagents' models loaded and savers restored.")
+        print(LOGGING_MSG_HEADER + ": model for {} loaded and saver restored.".format(self.model_variable_scope))
+        all_vars = tf.global_variables()
+        # [print(var) for var in all_vars]
+        main_model_var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope)
+        print("{} global variables ".format(len(all_vars)))
+        print("{} variables under {} ".format(len(main_model_var_list), self.model_variable_scope))
 
         # this call locks the computational graph into read-only state,
         # as a safety measure against memory leaks caused by mistakingly adding new ops to it
         self.sess.graph.finalize()
-
-    def load_subagents_from_checkpoints(self):
-        # key : subagent_variable_scope
-        # value : loaded checkpoint
-        self.subagents = {}
-        for subagent_dir in os.listdir(self.subagents_dir):
-            subagent_variable_scope = '_'.join(subagent_dir.split('_')[:2]) 
-            subagent_checkpoints_dir = os.path.join(self.subagents_dir, subagent_dir, 'checkpoints')
-            self.subagents[subagent_variable_scope] = tf.train.latest_checkpoint(subagent_checkpoints_dir)
-            # e.g. subagent_checkpoints_dir = "results/BuildMarinesWithBarracks_a2c_20-03-23_11-05-25/checkpoints"
-        print(LOGGING_MSG_HEADER + " : loaded subagent checkpoints are ", self.subagents)
-
-    def restore_subagents(self):
-        """
-        Initializes self.subagent_savers
-        Restores the subagent models
-        """
-        # need to give proper names to the subagent models
-        # for tf.variable_scope loading and saving
-        self.load_subagents_from_checkpoints()
-        self.subagent_savers = []
-        for subagent_variable_scope, subagent_checkpoint in self.subagents.items():
-            print(LOGGING_MSG_HEADER)
-            print("loaded checkpoint tensors:")
-            print_tensors_in_checkpoint_file(subagent_checkpoint, all_tensors=False, tensor_name='')
-            print()
-            print("this subagent var list: ")
-            subagent_var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=subagent_variable_scope)
-            # subagent_var_list = rebase_var_list(subagent_var_list)
-
-            [print(var.name) for var in subagent_var_list]
-            print()
-            subagent_saver = tf.train.Saver(tf.get_collection(
-                tf.GraphKeys.GLOBAL_VARIABLES, scope=subagent_variable_scope))
-
-            subagent_saver.restore(self.sess, subagent_checkpoint)  # add the models of the subagents to the same session and tf_graph
-
-            self.subagent_savers.append(subagent_saver)
 
     def run(self, tf_op, tf_inputs, inputs):
         return self.sess.run(tf_op, feed_dict=dict(zip(tf_inputs, inputs)))
@@ -125,15 +85,6 @@ class SessionManager:
             return
         summary = self.create_summary(prefix + '/' + tag, value)
         self.summary_writer.add_summary(summary, global_step=step)
-
-    def get_subagent_variable_scopes(self):
-        if os.path.isdir(self.subagents_dir):
-            self.subagent_variable_scopes = ['_'.join(subagent_dir.split('_')[:2]) for subagent_dir in os.listdir(self.subagents_dir)]
-            self.n_subagents = len(self.subagent_variable_scopes)
-        else:
-            self.n_subagents = 0
-        print(LOGGING_MSG_HEADER + ": Found a total of {} subagents".format(self.n_subagents))
-
 
     @staticmethod
     def create_summary(tag, value):
