@@ -10,8 +10,9 @@ from reaver.agents.base import ActorCriticAgent, DEFAULTS
 from .a2c import AdvantageActorCriticAgent
 
 
-LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.agents.hai> "
+LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.agents.hai> - "
 MAIN_AGENT_INDEX = -1
+
 
 @gin.configurable('HAIAgent')
 class HumanAIInteractionAgent(AdvantageActorCriticAgent):
@@ -41,13 +42,15 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         clip_grads_norm=DEFAULTS['clip_grads_norm'],
         normalize_returns=DEFAULTS['normalize_returns'],
         normalize_advantages=DEFAULTS['normalize_advantages'],
+        subagents_dir='subagents/',
+        **kwargs,
     ):
         AdvantageActorCriticAgent.__init__(
             self, obs_spec, act_spec, sess_mgr=sess_mgr, n_envs=n_envs)
 
         # since we are using separate session managers
         # we do not have to modify the a2c class at all
-        self.subagents_dir = 'subagents/'
+        self.subagents_dir = subagents_dir
         if self.check_subagents_dir():
             self.init_subagents(
                 self.n_subagents * [model_fn],
@@ -59,6 +62,7 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
             )
 
         self.selected_subagent_idx = MAIN_AGENT_INDEX
+        self.selected_subagent_key = 'main-agent'
 
     def check_subagents_dir(self):
         if os.path.isdir(self.subagents_dir):
@@ -73,8 +77,8 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
             self.n_subagents = len(self.subagent_variable_scopes)
         else:
             self.n_subagents = 0
-        print(LOGGING_MSG_HEADER +
-              ": Found a total of {} subagents".format(self.n_subagents))
+        print()
+        print(LOGGING_MSG_HEADER, "found a total of {} subagents".format(self.n_subagents))
         return self.n_subagents != 0
 
     def init_subagents(self, model_fns, obs_specs, act_specs, policy_clses,
@@ -87,7 +91,7 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
             subagent = Subagent()
             subagent_dir = self.subagent_dirs[subagent_variable_scope]
 
-            print(LOGGING_MSG_HEADER + ': resetting tf graph')
+            print(LOGGING_MSG_HEADER, 'resetting tf graph for subagent: ', subagent_variable_scope)
             tf.reset_default_graph()
             subagent.sess_mgr = SessionManager(base_path=subagent_dir,
                                                training_enabled=False,
@@ -100,12 +104,19 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
                     subagent.model = model_fn(obs_spec, act_spec)
                     subagent.value = subagent.model.outputs[-1]
                     subagent.policy = policy_cls(act_spec, subagent.model.outputs[:-1])
-                    print(LOGGING_MSG_HEADER+': ', subagent.variable_scope, 'model setup successful')
+                    print(LOGGING_MSG_HEADER, subagent.variable_scope, ' model setup successful')
 
                     subagent.sess_mgr.restore_or_init()
-                    print(LOGGING_MSG_HEADER+': ', subagent.variable_scope, 'model restore successful')
+                    print(LOGGING_MSG_HEADER, subagent.variable_scope, ' model restore successful')
 
             self.subagents[subagent_variable_scope] = subagent
+
+        self.subagents_idx_key_dict = {}
+        for idx, subagent_variable_scope in enumerate(self.subagents.keys()):
+            self.subagents_idx_key_dict[idx] = subagent_variable_scope
+
+        print(LOGGING_MSG_HEADER + "{} subagents are available: {}".format(self.n_subagents, self.subagents_idx_key_dict))
+        print("type their respective index to select them")
 
     def _run(self, env, n_steps):
         self.on_start()
@@ -127,50 +138,43 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
     Superclass' implementations of get_action_and_value() and get_action()
     Need to override to execute the session-manager of the selected subagent
     """
-
     def get_action_and_value(self, obs):
         if self.selected_subagent_idx == MAIN_AGENT_INDEX:
             return self.sess_mgr.run([self.policy.sample, self.value], self.model.inputs, obs)
         else:
-            print(LOGGING_MSG_HEADER + ": producing action from a loaded subagent")
-            selected_subagent = self.subagents[self.selected_subagent_idx]
+            selected_subagent = self.subagents[self.selected_subagent_key]
             return selected_subagent.sess_mgr.run([selected_subagent.policy.sample, selected_subagent.value], selected_subagent.model.inputs, obs)
 
     def get_action(self, obs):
         if self.selected_subagent_idx == MAIN_AGENT_INDEX:
             return self.sess_mgr.run(self.policy.sample, self.model.inputs, obs)
         else:
-            print(LOGGING_MSG_HEADER + ": producing action from a loaded subagent")
-            selected_subagent = self.subagents[self.selected_subagent_idx]
+            selected_subagent = self.subagents[self.selected_subagent_key]
             return selected_subagent.sess_mgr.run(selected_subagent.policy.sample, selected_subagent.model.inputs, obs)
-
-    # def get_action_and_value(self, obs):
-    #     return self.sess_mgr.run([self.policy.sample, self.value], self.model.inputs, obs)
-
-    # def get_action(self, obs):
-    #     return self.sess_mgr.run(self.policy.sample, self.model.inputs, obs)
 
     def select_subagent(self, message):
         """
-        Test phase:
-        selecting between a MoveToBeacon agent and a DefeatZerglings agent
+        Select the subagents via indices
         """
-        if 'beacon' in message:
-            self.selected_subagent_idx = 'MoveToBeacon_a2c'
-        elif 'attack' in message:
-            self.selected_subagent_idx = 1
-        else:
-            print(LOGGING_MSG_HEADER +
-                  ": invalid message, selecting default agent")
+        try:
+            subagent_index = int(message)
+            if subagent_index < self.n_subagents or subagent_index == -1:
+                self.selected_subagent_idx = subagent_index
+                self.selected_subagent_key = self.subagents_idx_key_dict[self.selected_subagent_idx]
+            else:
+                raise Exception
+        except:
+            print(LOGGING_MSG_HEADER, "invalid message, default to main-agent")
             self.selected_subagent_idx = MAIN_AGENT_INDEX
+            self.selected_subagent_key = 'main-agent'
 
     def parse_message(self, message):
         # TODO add in logic for parsing
         if message and 'roger' not in message:  # filter the roger messages
-            print(LOGGING_MSG_HEADER + ": {} ".format(message))
-            print("Previous selected agent index is {}".format(self.selected_subagent_idx))
+            print(LOGGING_MSG_HEADER + "{} ".format(message))
+            print("Previous agent is: {} - {}".format(self.selected_subagent_idx, self.selected_subagent_key))
             self.select_subagent(message)
-            print("swictched to this index {} : ".format(self.selected_subagent_idx))
+            print("Current agent is : {} - {}".format(self.selected_subagent_idx, self.selected_subagent_key))
 
 
 class Subagent():
