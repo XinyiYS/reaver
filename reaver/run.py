@@ -30,6 +30,8 @@ flags.DEFINE_integer('max_ep_len', None,
 
 flags.DEFINE_string('results_dir', 'results',
                     'Directory for model weights, train logs, etc.')
+flags.DEFINE_string('subagents_dir', 'subagents',
+                    'Only used for HAI agent to load the subagents\' models.')
 flags.DEFINE_string('experiment', None,
                     'Name of the experiment. Datetime by default.')
 
@@ -108,7 +110,7 @@ def main(argv):
 
     # use args.env and args.agent as the model_variable_scope
     agent = rvr.agents.registry[args.agent](
-        env.obs_spec(), env.act_spec(), sess_mgr=sess_mgr, n_envs=args.n_envs)
+        env.obs_spec(), env.act_spec(), sess_mgr=sess_mgr, n_envs=args.n_envs, subagents_dir=args.subagents_dir)
     agent.logger = rvr.utils.StreamLogger(
         args.n_envs, args.log_freq, args.log_eps_avg, sess_mgr, expt.log_path)
 
