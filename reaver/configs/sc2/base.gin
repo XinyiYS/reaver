@@ -10,7 +10,7 @@ ACAgent.value_coef = 0.5
 ACAgent.entropy_coef = 0.001
 
 ACAgent.batch_sz = 32
-ACAgent.traj_len = 16
+ACAgent.traj_len = 40
 
 ACAgent.discount = 0.99
 ACAgent.gae_lambda = 0.0
