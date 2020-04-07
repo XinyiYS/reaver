@@ -78,8 +78,8 @@ class SC2Env(Env):
 
         self._env = sc2_env.SC2Env(
             map_name=self.id,
-            visualize=True,  # visualize needs to be true to send chat
-            # visualize=self.render,
+            # visualize=True,  # visualize needs to be true to send chat
+            visualize=self.render,
             agent_interface_format=[features.parse_agent_interface_format(
                 feature_screen=self.spatial_dim,
                 feature_minimap=self.spatial_dim,
