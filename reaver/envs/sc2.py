@@ -43,13 +43,14 @@ class SC2Env(Env):
         # sensible action set for all minigames
         # 24 actions
         if not action_ids or action_ids in [ACTIONS_MINIGAMES, ACTIONS_MINIGAMES_ALL]:
-            action_ids = [0, 1, 2, 3, 4, 6, 7, 12, 13, 42, 44, 50,
-                          91, 183, 234, 309, 331, 332, 333, 334, 451, 477, 452, 490]
+            action_ids = [0, 1, 2, 3, 4, 6, 7, 12, 13, 42, 
+                        44, 50, 79, 91, 183, 234, 309, 331, 332, 333, 
+                        334, 451, 477, 452, 490]
 
         # some additional actions for minigames (not necessary to solve)
         # additional 18 actions
         if action_ids == ACTIONS_MINIGAMES_ALL:
-            action_ids += [11, 71, 72, 73, 74, 79, 140, 168,
+            action_ids += [11, 71, 72, 73, 74, 140, 168,
                            239, 261, 264, 269, 274, 318, 335, 336, 453, 477]
 
         # full action space, including outdated / unusable to current race / usable only in certain cases
