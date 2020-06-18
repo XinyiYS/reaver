@@ -115,7 +115,8 @@ def main(argv):
                                                    model_variable_scope=model_variable_scope,
                                                    training_enabled=not args.test,
                                                    restore_mix=args.restore_mix,
-                                                   env_name=args.experiment)
+                                                   env_name=args.experiment,
+                                                   new_env_name=args.env)
 
     env_cls = rvr.envs.GymEnv if '-v' in args.env else rvr.envs.SC2Env
     env = env_cls(args.env, args.render, max_ep_len=args.max_ep_len)

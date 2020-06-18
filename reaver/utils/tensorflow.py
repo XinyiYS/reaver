@@ -15,7 +15,8 @@ LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.utils.tensorflow> "
 
 class SessionManager:
     def __init__(self, sess=None, base_path='results/', checkpoint_freq=100,
-                 training_enabled=True, model_variable_scope=None, restore_mix=False, env_name=None):
+                 training_enabled=True, model_variable_scope=None, 
+                 restore_mix=False, env_name=None, new_env_name=None):
         if not sess:
             config = tf.ConfigProto(allow_soft_placement=True)
             config.gpu_options.allow_growth = True
@@ -29,9 +30,12 @@ class SessionManager:
         self.checkpoint_freq = checkpoint_freq
         self.training_enabled = training_enabled
 
-        assert not restore_mix or env_name is not None, "Must specify which previously trained env to restore."
+        assert not restore_mix or (env_name is not None and new_env_name is not None), "Must specify which previously trained env to restore."
         self.restore_mix = restore_mix
         self.env_name = env_name
+        if restore_mix:
+            self.prev_model_variable_scope = model_variable_scope
+            model_variable_scope = model_variable_scope.replace(env_name, new_env_name)
 
         with self.sess.graph.as_default():
             with tf.variable_scope(model_variable_scope) as main_tf_vs:
@@ -46,7 +50,14 @@ class SessionManager:
         if not self.model_variable_scope:
             self.saver = tf.train.Saver()
         else:
-            self.saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope))
+
+            if not self.restore_mix:
+                self.saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope))
+            else:
+                print("{}: Previous experiment variable scope <{}>, current experiment variable scope <{}>".format(self.prev_model_variable_scope, self.model_variable_scope))
+                all_prev_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope)
+                var_mapping_dict = { var.name.replace(self.model_variable_scope, self.prev_model_variable_scope):var for var in all_prev_vars if self.model_variable_scope in var.name}
+                self.saver = tf.train.Saver(var_list = var_mapping_dict)
 
         checkpoints = self.find_checkpoints(name=self.env_name if self.restore_mix else None)
         if checkpoints:
@@ -75,14 +86,6 @@ class SessionManager:
         main_model_var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope)
         print("{} global variables ".format(len(all_vars)))
         print("{} variables under {} ".format(len(main_model_var_list), self.model_variable_scope))
-
-        if self.restore_mix:
-            """
-            Renaming the restored variable scopes from the previous experiment (which is different), to this
-            environment configuration.
-            """
-            pass
-
 
         # this call locks the computational graph into read-only state,
         # as a safety measure against memory leaks caused by mistakingly adding new ops to it
@@ -116,7 +119,7 @@ class SessionManager:
         """
         name = name or self.base_path.split('/', 1)[1].split('_')[0]
         name = name + '_' # append an _ in the end to distinguish between maps with same prefix
-        print("{}: env name is <{}>".format(LOGGING_MSG_HEADER,  name))
+        print("{}: env name of the checkpoint loading from is <{}>".format(LOGGING_MSG_HEADER,  name))
         print("{}: checking dir in this format <{}> for checkpoints".format(LOGGING_MSG_HEADER, os.path.join(results_dir, name)))
 
         # sorted according to descending dates, i.e. newest in front
