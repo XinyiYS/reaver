@@ -54,7 +54,7 @@ class SessionManager:
             if not self.restore_mix:
                 self.saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope))
             else:
-                print("{}: Previous experiment variable scope <{}>, current experiment variable scope <{}>".format(self.prev_model_variable_scope, self.model_variable_scope))
+                print("{}: Previous experiment variable scope <{}>, current experiment variable scope <{}>".format(LOGGING_MSG_HEADER ,self.prev_model_variable_scope, self.model_variable_scope))
                 all_prev_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope)
                 var_mapping_dict = { var.name.replace(self.model_variable_scope, self.prev_model_variable_scope):var for var in all_prev_vars if self.model_variable_scope in var.name}
                 self.saver = tf.train.Saver(var_list = var_mapping_dict)
