@@ -42,6 +42,9 @@ flags.DEFINE_multi_string(
 flags.DEFINE_bool('restore', False,
                   'Restore & continue previously executed experiment. '
                   'If experiment not specified then last modified is used.')
+flags.DEFINE_bool('restore_mix', False,
+                  'Restore & continue training from a different previously executed experiment. '
+                  'If experiment not specified then last modified is used.')
 flags.DEFINE_bool('test', False,
                   'Run an agent in test mode: restore flag is set to true and number of envs set to 1'
                   'Loss is calculated, but gradients are not applied.'
@@ -56,6 +59,8 @@ flags.DEFINE_alias('cf', 'ckpt_freq')
 flags.DEFINE_alias('la', 'log_eps_avg')
 flags.DEFINE_alias('n', 'experiment')
 flags.DEFINE_alias('g', 'gin_bindings')
+flags.DEFINE_alias('r', 'restore')
+flags.DEFINE_alias('rx', 'restore_mix')
 
 
 def main(argv):
@@ -75,7 +80,7 @@ def main(argv):
         args.restore = True
 
     expt = rvr.utils.Experiment(
-        args.results_dir, args.env, args.agent, args.experiment, args.restore)
+        args.results_dir, args.env, args.agent, args.experiment, args.restore, args.restore_mix)
 
     gin_files = rvr.utils.find_configs(
         args.env, os.path.dirname(os.path.abspath(__file__)))
@@ -98,12 +103,19 @@ def main(argv):
     sess = tf.Session(config=config)
     # sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
 
-    model_variable_scope = "{}_{}".format(str(args.env), str(args.agent))
+    print(str(args.env), str(args.experiment), str(args.agent))
+    if args.restore_mix:
+        model_variable_scope = "{}_{}".format(str(args.experiment), str(args.agent))
+    else:
+        model_variable_scope = "{}_{}".format(str(args.env), str(args.agent))
+
     sess_mgr = rvr.utils.tensorflow.SessionManager(sess,
                                                    expt.path,
                                                    args.ckpt_freq,
                                                    model_variable_scope=model_variable_scope,
-                                                   training_enabled=not args.test)
+                                                   training_enabled=not args.test,
+                                                   restore_mix=args.restore_mix,
+                                                   env_name=args.experiment)
 
     env_cls = rvr.envs.GymEnv if '-v' in args.env else rvr.envs.SC2Env
     env = env_cls(args.env, args.render, max_ep_len=args.max_ep_len)
@@ -116,6 +128,7 @@ def main(argv):
 
     if sess_mgr.training_enabled:
         expt.save_gin_config()
+        expt.save_experiment_config()
         expt.save_model_summary(agent.model)
 
     agent.run(env, args.n_updates * agent.traj_len *
