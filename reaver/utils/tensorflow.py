@@ -54,29 +54,70 @@ class SessionManager:
             if not self.restore_mix:
                 self.saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope))
             else:
-                print("{}: Previous experiment variable scope <{}>, current experiment variable scope <{}>".format(LOGGING_MSG_HEADER ,self.prev_model_variable_scope, self.model_variable_scope))
+                print("{}: Previous experiment variable scope <{}>, current experiment variable scope <{}>".format(LOGGING_MSG_HEADER, self.prev_model_variable_scope, self.model_variable_scope))
                 all_prev_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope)
-                var_mapping_dict = { var.name.replace(self.model_variable_scope, self.prev_model_variable_scope):var for var in all_prev_vars if self.model_variable_scope in var.name}
+
+                # print(all_prev_vars)
+                # print(all_prev_vars[0].name)
+                # print(all_prev_vars[0])
+
+                # stripping the ":0" at the end of the variable name is a hack, necessary because of the Tensorflow underlying API's interpretation of tensor names
+                # see: https://stackoverflow.com/questions/40925652/in-tensorflow-whats-the-meaning-of-0-in-a-variables-name
+                var_mapping_dict = {var.name.replace(self.model_variable_scope, self.prev_model_variable_scope).replace(":0", "") :var for var in all_prev_vars if self.model_variable_scope in var.name}
                 self.saver = tf.train.Saver(var_list = var_mapping_dict)
 
-        checkpoints = self.find_checkpoints(name=self.env_name if self.restore_mix else None)
+        previous_results_dir = os.path.join( *(self.base_path.split('/')[:-1])) # go up one level in the directory to look for the previous experiment 
+        checkpoints = self.find_checkpoints(name=self.env_name if self.restore_mix else None, results_dir=previous_results_dir)
+        print("{}: Found checkpoints are {}.".format(LOGGING_MSG_HEADER, checkpoints))
+        
+        #TODO restore and rectore_mix, the save behavior needs to be different
         if checkpoints:
             for checkpoint in checkpoints:
-                try:
-                    self.saver.restore(self.sess, checkpoint)
-                    print("{}: Restoring from a previous checkpoint: <{}>".format(LOGGING_MSG_HEADER, checkpoint))
+                if self.restore_mix:
+                    try:
+                        self.saver = tf.train.Saver(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope))
+                        
+                        all_prev_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope)
+                        # stripping the ":0" at the end of the variable name is a hack, necessary because of the Tensorflow underlying API's interpretation of tensor names
+                        # see: https://stackoverflow.com/questions/40925652/in-tensorflow-whats-the-meaning-of-0-in-a-variables-name
+                        var_mapping_dict = {var.name.replace(self.model_variable_scope, self.prev_model_variable_scope).replace(":0", "") :var for var in all_prev_vars if self.model_variable_scope in var.name}
+                        tf.train.init_from_checkpoint(checkpoint, var_mapping_dict)
 
-                    new_summaries_path = os.path.join(  * (str(checkpoint).split("/", 2)[:2] + ['summaries']) )
-                    self.summary_writer = tf.summary.FileWriter(new_summaries_path)
-                    print("{}: Restoring summaries from previous: <{}>".format(LOGGING_MSG_HEADER, new_summaries_path))
-                    if self.training_enabled:
-                        # merge with previous summary session
-                        self.summary_writer.add_session_log(
-                            tf.SessionLog(status=tf.SessionLog.START), self.sess.run(self.global_step))
-                    
-                    break # if successful, break the loop
-                except Exception as e:
-                    print("Error {} when loading checkpoint {}".format(str(e), checkpoint))
+                        print("{}: Restore from a previous different checkpoint without initializing the tensors: <{}>".format(LOGGING_MSG_HEADER, checkpoint))
+
+                        new_summaries_path = os.path.join(  * (str(checkpoint).split("/", 2)[:2] + ['summaries']) )
+                        self.summary_writer = tf.summary.FileWriter(new_summaries_path)
+                        print("{}: Restoring summaries from previous: <{}>".format(LOGGING_MSG_HEADER, new_summaries_path))
+                        # if self.training_enabled:
+                        #     # merge with previous summary session
+                        #     self.summary_writer.add_session_log(
+                        #         tf.SessionLog(status=tf.SessionLog.START), self.sess.run(self.global_step))
+                        
+                        print("{}: Restore successful".format(LOGGING_MSG_HEADER))
+                        self.sess.run(tf.global_variables_initializer())
+
+                        break # if successful, break the loop
+                    except Exception as e:
+                        print("Error {} when loading checkpoint {}".format(str(e), checkpoint))
+
+                else:
+                    try:
+                        self.saver.restore(self.sess, checkpoint)
+                        print("{}: Restoring from a previous checkpoint: <{}>".format(LOGGING_MSG_HEADER, checkpoint))
+
+                        new_summaries_path = os.path.join(  * (str(checkpoint).split("/", 2)[:2] + ['summaries']) )
+                        self.summary_writer = tf.summary.FileWriter(new_summaries_path)
+                        print("{}: Restoring summaries from previous: <{}>".format(LOGGING_MSG_HEADER, new_summaries_path))
+                        if self.training_enabled:
+                            # merge with previous summary session
+                            self.summary_writer.add_session_log(
+                                tf.SessionLog(status=tf.SessionLog.START), self.sess.run(self.global_step))
+                        
+                        print("{}: Restore successful".format(LOGGING_MSG_HEADER))
+                        break # if successful, break the loop
+                    except Exception as e:
+                        print("Error {} when loading checkpoint {}".format(str(e), checkpoint))
+
         else:
             self.sess.run(tf.global_variables_initializer())
 
@@ -84,9 +125,9 @@ class SessionManager:
         all_vars = tf.global_variables()
         # [print(var) for var in all_vars]
         main_model_var_list = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope=self.model_variable_scope)
-        print("{} global variables ".format(len(all_vars)))
-        print("{} variables under {} ".format(len(main_model_var_list), self.model_variable_scope))
-
+        print("{}: {} global variables ".format(LOGGING_MSG_HEADER, len(all_vars)))
+        print("{}: {} variables under {} ".format(LOGGING_MSG_HEADER, len(main_model_var_list), self.model_variable_scope))
+        print("{}: checkpoint saving directory {}".format(LOGGING_MSG_HEADER, self.checkpoints_path))
         # this call locks the computational graph into read-only state,
         # as a safety measure against memory leaks caused by mistakingly adding new ops to it
         self.sess.graph.finalize()

@@ -103,7 +103,8 @@ def main(argv):
     sess = tf.Session(config=config)
     # sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
 
-    print(str(args.env), str(args.experiment), str(args.agent))
+    print("Current environment: {}, Previous experiment: {}, Agent type: {}.".format(str(args.env), str(args.experiment), str(args.agent)))
+    print("Experiment path: {}".format(expt.path))
     if args.restore_mix:
         model_variable_scope = "{}_{}".format(str(args.experiment), str(args.agent))
     else:
