@@ -85,9 +85,9 @@ class SessionManager:
 
                         print("{}: Restore from a previous different checkpoint without initializing the tensors: <{}>".format(LOGGING_MSG_HEADER, checkpoint))
 
-                        new_summaries_path = os.path.join(  * (str(checkpoint).split("/", 2)[:2] + ['summaries']) )
-                        self.summary_writer = tf.summary.FileWriter(new_summaries_path)
-                        print("{}: Restoring summaries from previous: <{}>".format(LOGGING_MSG_HEADER, new_summaries_path))
+                        # new_summaries_path = os.path.join(  * (str(checkpoint).split("/", 2)[:2] + ['summaries']) )
+                        # self.summary_writer = tf.summary.FileWriter(new_summaries_path)
+                        # print("{}: Restoring summaries from previous: <{}>".format(LOGGING_MSG_HEADER, new_summaries_path))
                         # if self.training_enabled:
                         #     # merge with previous summary session
                         #     self.summary_writer.add_session_log(
