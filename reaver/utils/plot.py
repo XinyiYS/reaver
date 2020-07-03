@@ -29,6 +29,8 @@ def plot_from_summaries(summaries_path, title=None, samples_per_update=512, upda
     plt.ticklabel_format(style='sci', axis='x', scilimits=(0, 0))
 
 
+# while plotting, there should not be multiple tf.events in the summaries folder.
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('logdir', type=str)

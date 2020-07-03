@@ -1,0 +1,74 @@
+WARNING:tensorflow:From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+W0702 14:28:59.106877 140276921399104 deprecation.py:323] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+WARNING:tensorflow:From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/keras/initializers.py:119: calling RandomUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
+Instructions for updating:
+Call initializer instance with the dtype argument instead of passing it to the constructor
+W0702 14:28:59.376981 140276921399104 deprecation.py:506] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/keras/initializers.py:119: calling RandomUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
+Instructions for updating:
+Call initializer instance with the dtype argument instead of passing it to the constructor
+WARNING:tensorflow:From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+Instructions for updating:
+If using Keras pass *_constraint arguments to layers.
+W0702 14:28:59.388598 140276921399104 deprecation.py:506] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+Instructions for updating:
+If using Keras pass *_constraint arguments to layers.
+INFO:tensorflow:Restoring parameters from results/ScoutingForNexus_a2c_SFN0/checkpoints/ckpt-23000
+I0702 14:29:01.291547 140276921399104 saver.py:1293] Restoring parameters from results/ScoutingForNexus_a2c_SFN0/checkpoints/ckpt-23000
+I0702 14:29:01.474439 140276921399104 sc_process.py:135] Launching SC2: /home/neal/StarCraftII/Versions/Base75689/SC2_x64 -listen 127.0.0.1 -port 22423 -dataDir /home/neal/StarCraftII/ -tempDir /tmp/sc-id6aiw4l/
+I0702 14:29:01.488339 140276921399104 remote_controller.py:167] Connecting to: ws://127.0.0.1:22423/sc2api, attempt: 0, running: True
+Version: B75689 (SC2.4.10)
+Build: Aug 12 2019 17:16:57
+Command Line: '"/home/neal/StarCraftII/Versions/Base75689/SC2_x64" -listen 127.0.0.1 -port 22423 -dataDir /home/neal/StarCraftII/ -tempDir /tmp/sc-id6aiw4l/'
+Starting up...
+Startup Phase 1 complete
+I0702 14:29:02.490234 140276921399104 remote_controller.py:167] Connecting to: ws://127.0.0.1:22423/sc2api, attempt: 1, running: True
+Startup Phase 2 complete
+Creating stub renderer...
+Listening on: 127.0.0.1:22423
+Startup Phase 3 complete. Ready for commands.
+I0702 14:29:03.492577 140276921399104 remote_controller.py:167] Connecting to: ws://127.0.0.1:22423/sc2api, attempt: 2, running: True
+ConnectHandler: Request from 127.0.0.1:57342 accepted
+ReadyHandler: 127.0.0.1:57342 ready
+Requesting to join a single player game
+Configuring interface options
+Configure: raw interface enabled
+Configure: feature layer interface enabled
+Configure: score interface enabled
+Configure: render interface disabled
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+Using default stable ids, none found at: /home/neal/StarCraftII/stableid.json
+Successfully loaded stable ids: GameData\stableid.json
+Sending ResponseJoinGame
+I0702 14:29:07.317591 140276921399104 sc2_env.py:314] Environment is ready
+I0702 14:29:07.318183 140276921399104 sc2_env.py:507] Starting episode 1: [terran] on ScoutingForNexus
+I0702 14:29:15.849995 140276921399104 sc2_env.py:725] Episode 1 finished after 1920 game steps. Outcome: [1], reward: [0], score: [2]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0702 14:29:17.909610 140276921399104 sc2_env.py:507] Starting episode 2: [terran] on ScoutingForNexus
+I0702 14:29:17.921122 140276921399104 sc2_env.py:752] Environment Close
+RequestQuit command received.
+Closing Application...
+DataHandler: unable to parse websocket frame.
+CloseHandler: 127.0.0.1:57342 disconnected
+I0702 14:29:18.025148 140276921399104 sc_process.py:232] Shutdown gracefully.
+I0702 14:29:18.025258 140276921399104 sc_process.py:210] Shutdown with return code: -15

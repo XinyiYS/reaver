@@ -34,6 +34,8 @@ flags.DEFINE_string('subagents_dir', 'subagents',
                     'Only used for HAI agent to load the subagents\' models.')
 flags.DEFINE_string('experiment', None,
                     'Name of the experiment. Datetime by default.')
+# For example, "MoveToBeacon_a2c_20-06-22_13-55-33", the name is "20-06-22_13-55-33",
+# while the env_name is "MoveToBeacon" and the agent_name is"a2c"
 
 flags.DEFINE_multi_string('gin_files', [], 'List of path(s) to gin config(s).')
 flags.DEFINE_multi_string(

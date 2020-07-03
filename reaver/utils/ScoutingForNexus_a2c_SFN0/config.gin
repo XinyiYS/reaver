@@ -1,0 +1,63 @@
+# Parameters for A2CAgent:
+# ==============================================================================
+A2CAgent.batch_sz = 16
+A2CAgent.clip_grads_norm = 0.0
+A2CAgent.clip_rewards = 0.0
+A2CAgent.discount = 0.99
+A2CAgent.entropy_coef = 0.01
+A2CAgent.gae_lambda = 0.95
+A2CAgent.model_fn = None
+A2CAgent.normalize_advantages = False
+A2CAgent.normalize_returns = False
+A2CAgent.optimizer = None
+A2CAgent.policy_cls = None
+A2CAgent.traj_len = 16
+A2CAgent.value_coef = 0.5
+
+# Parameters for ACAgent:
+# ==============================================================================
+ACAgent.batch_sz = 32
+ACAgent.clip_grads_norm = 10.0
+ACAgent.clip_rewards = 0.0
+ACAgent.discount = 0.99
+ACAgent.entropy_coef = 0.001
+ACAgent.gae_lambda = 0.0
+ACAgent.model_fn = @build_fully_conv
+ACAgent.model_variable_scope = None
+ACAgent.normalize_advantages = False
+ACAgent.normalize_returns = False
+ACAgent.optimizer = @tf.train.AdamOptimizer()
+ACAgent.policy_cls = @SC2MultiPolicy
+ACAgent.traj_len = 40
+ACAgent.value_coef = 0.5
+
+# Parameters for AdamOptimizer:
+# ==============================================================================
+AdamOptimizer.beta1 = 0.9
+AdamOptimizer.beta2 = 0.999
+AdamOptimizer.epsilon = 1e-08
+AdamOptimizer.learning_rate = 0.0007
+AdamOptimizer.name = 'Adam'
+AdamOptimizer.use_locking = False
+
+# Parameters for build_fully_conv:
+# ==============================================================================
+build_fully_conv.broadcast_non_spatial = False
+build_fully_conv.data_format = 'channels_first'
+build_fully_conv.fc_dim = 256
+
+# Parameters for MultiPolicy:
+# ==============================================================================
+# None.
+
+# Parameters for SC2Env:
+# ==============================================================================
+SC2Env.action_ids = 'minigames'
+SC2Env.obs_features = None
+SC2Env.reset_done = True
+SC2Env.spatial_dim = 16
+SC2Env.step_mul = 8
+
+# Parameters for SC2MultiPolicy:
+# ==============================================================================
+# None.

@@ -1,0 +1,206 @@
+WARNING:tensorflow:From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+W0701 20:56:54.465428 140569653475136 deprecation.py:323] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+WARNING:tensorflow:From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/keras/initializers.py:119: calling RandomUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
+Instructions for updating:
+Call initializer instance with the dtype argument instead of passing it to the constructor
+W0701 20:56:54.766619 140569653475136 deprecation.py:506] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/keras/initializers.py:119: calling RandomUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
+Instructions for updating:
+Call initializer instance with the dtype argument instead of passing it to the constructor
+WARNING:tensorflow:From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+Instructions for updating:
+If using Keras pass *_constraint arguments to layers.
+W0701 20:56:54.778525 140569653475136 deprecation.py:506] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+Instructions for updating:
+If using Keras pass *_constraint arguments to layers.
+INFO:tensorflow:Restoring parameters from results/ScoutingForNexus_a2c_SFN0/checkpoints/ckpt-12500
+I0701 20:56:56.766116 140569653475136 saver.py:1293] Restoring parameters from results/ScoutingForNexus_a2c_SFN0/checkpoints/ckpt-12500
+I0701 20:56:56.971060 140569653475136 sc_process.py:135] Launching SC2: /home/neal/StarCraftII/Versions/Base75689/SC2_x64 -listen 127.0.0.1 -port 24125 -dataDir /home/neal/StarCraftII/ -tempDir /tmp/sc-1twqe0hu/
+I0701 20:56:56.981998 140569653475136 remote_controller.py:167] Connecting to: ws://127.0.0.1:24125/sc2api, attempt: 0, running: True
+Version: B75689 (SC2.4.10)
+Build: Aug 12 2019 17:16:57
+Command Line: '"/home/neal/StarCraftII/Versions/Base75689/SC2_x64" -listen 127.0.0.1 -port 24125 -dataDir /home/neal/StarCraftII/ -tempDir /tmp/sc-1twqe0hu/'
+Starting up...
+Startup Phase 1 complete
+I0701 20:56:57.983804 140569653475136 remote_controller.py:167] Connecting to: ws://127.0.0.1:24125/sc2api, attempt: 1, running: True
+Startup Phase 2 complete
+Creating stub renderer...
+Listening on: 127.0.0.1:24125
+Startup Phase 3 complete. Ready for commands.
+I0701 20:56:58.984701 140569653475136 remote_controller.py:167] Connecting to: ws://127.0.0.1:24125/sc2api, attempt: 2, running: True
+ConnectHandler: Request from 127.0.0.1:37538 accepted
+ReadyHandler: 127.0.0.1:37538 ready
+Requesting to join a single player game
+Configuring interface options
+Configure: raw interface enabled
+Configure: feature layer interface enabled
+Configure: score interface enabled
+Configure: render interface disabled
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+Using default stable ids, none found at: /home/neal/StarCraftII/stableid.json
+Successfully loaded stable ids: GameData\stableid.json
+Sending ResponseJoinGame
+I0701 20:57:02.573446 140569653475136 sc2_env.py:314] Environment is ready
+I0701 20:57:02.573909 140569653475136 sc2_env.py:507] Starting episode 1: [terran] on ScoutingForNexus
+I0701 20:57:10.506939 140569653475136 sc2_env.py:725] Episode 1 finished after 1920 game steps. Outcome: [1], reward: [0], score: [3]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:57:12.573391 140569653475136 sc2_env.py:507] Starting episode 2: [terran] on ScoutingForNexus
+I0701 20:57:16.884191 140569653475136 sc2_env.py:725] Episode 2 finished after 1920 game steps. Outcome: [1], reward: [0], score: [4]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:57:18.930325 140569653475136 sc2_env.py:507] Starting episode 3: [terran] on ScoutingForNexus
+I0701 20:57:23.138213 140569653475136 sc2_env.py:725] Episode 3 finished after 1920 game steps. Outcome: [1], reward: [0], score: [3]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:57:25.206175 140569653475136 sc2_env.py:507] Starting episode 4: [terran] on ScoutingForNexus
+I0701 20:57:29.282951 140569653475136 sc2_env.py:725] Episode 4 finished after 1920 game steps. Outcome: [1], reward: [0], score: [1]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:57:31.328542 140569653475136 sc2_env.py:507] Starting episode 5: [terran] on ScoutingForNexus
+I0701 20:57:35.336042 140569653475136 sc2_env.py:725] Episode 5 finished after 1920 game steps. Outcome: [1], reward: [0], score: [2]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:57:37.437792 140569653475136 sc2_env.py:507] Starting episode 6: [terran] on ScoutingForNexus
+I0701 20:57:50.890560 140569653475136 sc2_env.py:725] Episode 6 finished after 1920 game steps. Outcome: [1], reward: [0], score: [2]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:57:52.976213 140569653475136 sc2_env.py:507] Starting episode 7: [terran] on ScoutingForNexus
+I0701 20:57:57.143540 140569653475136 sc2_env.py:725] Episode 7 finished after 1920 game steps. Outcome: [1], reward: [0], score: [4]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:57:59.213148 140569653475136 sc2_env.py:507] Starting episode 8: [terran] on ScoutingForNexus
+I0701 20:58:03.349203 140569653475136 sc2_env.py:725] Episode 8 finished after 1920 game steps. Outcome: [1], reward: [0], score: [1]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:58:05.451505 140569653475136 sc2_env.py:507] Starting episode 9: [terran] on ScoutingForNexus
+I0701 20:58:09.719365 140569653475136 sc2_env.py:725] Episode 9 finished after 1920 game steps. Outcome: [1], reward: [0], score: [3]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:58:11.793359 140569653475136 sc2_env.py:507] Starting episode 10: [terran] on ScoutingForNexus
+I0701 20:58:16.035779 140569653475136 sc2_env.py:725] Episode 10 finished after 1920 game steps. Outcome: [1], reward: [0], score: [2]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:58:18.115270 140569653475136 sc2_env.py:507] Starting episode 11: [terran] on ScoutingForNexus
+I0701 20:58:22.442721 140569653475136 sc2_env.py:725] Episode 11 finished after 1920 game steps. Outcome: [1], reward: [0], score: [0]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:58:24.528748 140569653475136 sc2_env.py:507] Starting episode 12: [terran] on ScoutingForNexus
+I0701 20:58:28.870109 140569653475136 sc2_env.py:725] Episode 12 finished after 1920 game steps. Outcome: [1], reward: [0], score: [0]
+Performing a full restart of the game.
+Launching next game.
+Next launch phase started: 2
+Next launch phase started: 3
+Next launch phase started: 4
+Next launch phase started: 5
+Next launch phase started: 6
+Next launch phase started: 7
+Next launch phase started: 8
+Game has started.
+I0701 20:58:30.944496 140569653475136 sc2_env.py:507] Starting episode 13: [terran] on ScoutingForNexus
+I0701 20:58:31.716798 140569653475136 sc2_env.py:752] Environment Close
+DataHandler: unable to parse websocket frame.
+RequestQuit command received.
+Closing Application...
+CloseHandler: 127.0.0.1:37538 disconnected
+I0701 20:58:31.817745 140569653475136 sc_process.py:232] Shutdown gracefully.
+I0701 20:58:31.817862 140569653475136 sc_process.py:210] Shutdown with return code: -15
