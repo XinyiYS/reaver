@@ -58,8 +58,47 @@ class SyncRunningAgent(RunningAgent):
         self.n_envs = n_envs
 
     def wrap_env(self, env: Env) -> Env:
-        render, env.render = env.render, False
-        envs = [env] + [copy.deepcopy(env) for _ in range(self.n_envs-1)]
-        env.render = render
-
+        print("{} from SyncRunningAgent: wrapping {}:{} to create {} environments.".format(LOGGING_MSG_HEADER, env, env.id, self.n_envs))
+        envs = self.get_subenvs(env)
         return MultiProcEnv(envs)
+
+    def get_subenvs(self, env):
+        from reaver.envs.sc2 import SC2Env
+        assert isinstance(env, SC2Env), "Not implemented for non-SC2Envs"
+
+        if env.id not in sub_env_dict:
+
+            render, env.render = env.render, False
+            envs = [env] + [copy.deepcopy(env) for _ in range(self.n_envs-1)]
+            env.render = render
+
+        else:
+            print("{} from SyncRunningAgent: getting sub-envs for {}".format(LOGGING_MSG_HEADER, env.id))
+            sub_envs = sub_env_dict[env.id]
+            print("{} from SyncRunningAgent: {} sub-envs are {}".format(LOGGING_MSG_HEADER, len(sub_envs), sub_envs))
+
+            envs = [SC2Env(subenv, env.render, max_ep_len=env.max_ep_len) for subenv in sub_env_dict[env.id] ]
+
+            if self.n_envs % 8 == 0:
+                duplicate_copy = self.n_envs // 4 # 4 because each has 4 sub-envs
+                
+                import itertools
+                envs = list(itertools.chain.from_iterable(itertools.repeat(env, duplicate_copy) for env in envs))
+
+        return envs
+
+sub_env_dict = {"BuildMarines": 
+                                [     
+                                "BuildSupplyDepots",
+                                "BuildBarracks",
+                                "BuildMarinesWithBarracks",       
+                                "BuildMarines_depotbarracks",
+                                ],
+                "CollectMineralsAndGas":
+                                [
+                                "CollectMineralsAndGas",  # 420s
+                                "BuildRefinery",
+                                "CollectGasWithRefineries",
+                                "BuildRefineryAndCollectGas",
+                                ],
+                }

@@ -62,6 +62,7 @@ flags.DEFINE_alias('g', 'gin_bindings')
 flags.DEFINE_alias('r', 'restore')
 flags.DEFINE_alias('rx', 'restore_mix')
 
+LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.run.py>  script"
 
 def main(argv):
     tf.disable_eager_execution()
@@ -133,6 +134,7 @@ def main(argv):
         expt.save_experiment_config()
         expt.save_model_summary(agent.model)
 
+    print("{}: initialized env is {}:{}".format(LOGGING_MSG_HEADER, env, env.id))
     agent.run(env, args.n_updates * agent.traj_len *
               agent.batch_sz // args.n_envs)
 
