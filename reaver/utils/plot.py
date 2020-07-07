@@ -30,6 +30,9 @@ def plot_from_summaries(summaries_path, title=None, samples_per_update=512, upda
 
 
 # while plotting, there should not be multiple tf.events in the summaries folder.
+# example command:
+# python plot.py ScoutingForNexus_a2c_SFN0/summaries --titles ScoutingForNexus
+# assuming ScoutingForNexus_a2c_SFN0 is under reaver/utils
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
