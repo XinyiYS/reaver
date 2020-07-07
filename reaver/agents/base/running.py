@@ -81,9 +81,12 @@ class SyncRunningAgent(RunningAgent):
 
             if self.n_envs % 8 == 0:
                 duplicate_copy = self.n_envs // 4 # 4 because each has 4 sub-envs
-                
-                import itertools
-                envs = list(itertools.chain.from_iterable(itertools.repeat(env, duplicate_copy) for env in envs))
+                envs_ = []
+                for env in envs:
+                    for _ in range(duplicate_copy):
+                        envs_.append(copy.deepcopy(env))
+                envs = envs_
+                del envs_
 
         return envs
 
