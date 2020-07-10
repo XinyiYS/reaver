@@ -1,66 +1,15 @@
-WARNING:tensorflow:From /home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
-Instructions for updating:
-non-resource variables are not supported in the long term
-W0710 15:53:36.305303 140491625187136 deprecation.py:323] From /home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
-Instructions for updating:
-non-resource variables are not supported in the long term
-WARNING:tensorflow:From /home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/keras/initializers.py:119: calling RandomUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
-Instructions for updating:
-Call initializer instance with the dtype argument instead of passing it to the constructor
-W0710 15:53:36.605946 140491625187136 deprecation.py:506] From /home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/keras/initializers.py:119: calling RandomUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
-Instructions for updating:
-Call initializer instance with the dtype argument instead of passing it to the constructor
-WARNING:tensorflow:From /home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
-Instructions for updating:
-If using Keras pass *_constraint arguments to layers.
-W0710 15:53:36.620068 140491625187136 deprecation.py:506] From /home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
-Instructions for updating:
-If using Keras pass *_constraint arguments to layers.
-Process Process-1:
-Traceback (most recent call last):
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/multiprocessing/process.py", line 258, in _bootstrap
-    self.run()
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/multiprocessing/process.py", line 93, in run
-    self._target(*self._args, **self._kwargs)
-  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/envs/base/shm_multiproc.py", line 45, in _run
-    self._env.start()
-  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/envs/sc2.py", line 91, in start
-    players=[sc2_env.Agent(sc2_env.Race.terran)])
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/pysc2/env/sc2_env.py", line 230, in __init__
-    self._maps = [maps.get(name) for name in to_list(map_name)]
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/pysc2/env/sc2_env.py", line 230, in <listcomp>
-    self._maps = [maps.get(name) for name in to_list(map_name)]
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/pysc2/maps/lib.py", line 141, in get
-    raise NoMapError("Map doesn't exist: %s" % map_name)
-pysc2.maps.lib.NoMapError: Map doesn't exist: ScoutingForNexus
-I0710 15:53:39.386090 140491625187136 sc2_env.py:752] Environment Close
-Traceback (most recent call last):
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/runpy.py", line 193, in _run_module_as_main
-    "__main__", mod_spec)
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/runpy.py", line 85, in _run_code
-    exec(code, run_globals)
-  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/run.py", line 144, in <module>
-    app.run(main)
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/absl/app.py", line 299, in run
-    _run_main(main, args)
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/absl/app.py", line 250, in _run_main
-    sys.exit(main(argv))
-  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/run.py", line 139, in main
-    agent.batch_sz // args.n_envs)
-  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/agents/base/running.py", line 17, in run
-    env.start()
-  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/envs/base/shm_multiproc.py", line 80, in start
-    self.wait()
-  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/envs/base/shm_multiproc.py", line 108, in wait
-    return [e.wait() for e in self.envs]
-  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/envs/base/shm_multiproc.py", line 108, in <listcomp>
-    return [e.wait() for e in self.envs]
-  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/envs/base/shm_multiproc.py", line 32, in wait
-    return self.conn.recv()
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/multiprocessing/connection.py", line 250, in recv
-    buf = self._recv_bytes()
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/multiprocessing/connection.py", line 407, in _recv_bytes
-    buf = self._recv(4)
-  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/multiprocessing/connection.py", line 379, in _recv
-    chunk = read(handle, remaining)
-KeyboardInterrupt
+Current environment: ScoutingForNexus, Previous experiment: None, Agent type: a2c.
+Experiment path: results/ScoutingForNexus_a2c_20-07-10_16-07-30
+pygame 1.9.6
+Hello from the pygame community. https://www.pygame.org/contribute.html
+subagents
+LOGGING FROM <reaver.reaver.agents.base.actor_critic>  : the current model_variable_scope is ScoutingForNexus_a2c
+LOGGING FROM <reaver.reaver.agents.base.actor_critic>  : main_model setup on sess and graph complete
+LOGGING FROM <reaver.reaver.utils.tensorflow> : env name of the checkpoint loading from is <ScoutingForNexus_>
+LOGGING FROM <reaver.reaver.utils.tensorflow> : checking dir in this format <results/ScoutingForNexus_> for checkpoints
+LOGGING FROM <reaver.reaver.utils.tensorflow> : Found checkpoints are [].
+LOGGING FROM <reaver.reaver.utils.tensorflow> : model for ScoutingForNexus_a2c loaded and saver restored.
+LOGGING FROM <reaver.reaver.utils.tensorflow> : 132 global variables 
+LOGGING FROM <reaver.reaver.utils.tensorflow> : 132 variables under ScoutingForNexus_a2c 
+LOGGING FROM <reaver.reaver.utils.tensorflow> : checkpoint saving directory results/ScoutingForNexus_a2c_20-07-10_16-07-30/checkpoints
+LOGGING FROM <reaver.reaver.agents.base.actor_critic>  : main_model weights restore/init complete
