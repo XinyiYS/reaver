@@ -135,6 +135,8 @@ def main(argv):
         expt.save_model_summary(agent.model)
 
     print("{}: initialized env is {}:{}".format(LOGGING_MSG_HEADER, env, env.id))
+    print(LOGGING_MSG_HEADER + " Sample efficiency related info: batch_size is {}, trajectory length is {}, specified number of updates is {}, so number of samples is {}"
+      .format(agent.batch_sz, agent.traj_len, args.n_updates, agent.batch_sz * agent.traj_len * args.n_updates ))
     agent.run(env, args.n_updates * agent.traj_len *
               agent.batch_sz // args.n_envs)
 
