@@ -41,8 +41,8 @@ class ProximalPolicyOptimizationAgent(SyncRunningAgent, ActorCriticAgent):
         clip_value=0.5,
         value_coef=DEFAULTS['value_coef'],
         entropy_coef=DEFAULTS['entropy_coef'],
-        traj_len=DEFAULTS['traj_len'],
-        batch_sz=DEFAULTS['batch_sz'],
+        traj_len=DEFAULTS['traj_len'],  # default is 40
+        batch_sz=DEFAULTS['batch_sz'],  # default is 32
         discount=DEFAULTS['discount'],
         gae_lambda=DEFAULTS['gae_lambda'],
         clip_rewards=DEFAULTS['clip_rewards'],
