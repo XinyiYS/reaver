@@ -125,7 +125,9 @@ def main(argv):
 
     # use args.env and args.agent as the model_variable_scope
     agent = rvr.agents.registry[args.agent](
-        env.obs_spec(), env.act_spec(), sess_mgr=sess_mgr, n_envs=args.n_envs, subagents_dir=args.subagents_dir)
+        env.obs_spec(), env.act_spec(), 
+        sess_mgr=sess_mgr, 
+        n_envs=args.n_envs, subagents_dir=args.subagents_dir, args=args)
     agent.logger = rvr.utils.StreamLogger(
         args.n_envs, args.log_freq, args.log_eps_avg, sess_mgr, expt.log_path)
 
