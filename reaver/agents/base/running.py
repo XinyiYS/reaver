@@ -220,8 +220,8 @@ SUB_ENV_DICT = {"BuildMarines":
                                 "BuildSupplyDepots",
                                 "BuildBarracks",
                                 "BuildMarinesWithBarracks",       
-                                "BuildMarinesDepotBarracks",
                                 "BuildMarines",
+                                # "BuildMarinesDepotBarracks",
                                 ],
                 "CollectMineralsAndGas":
                                 [
