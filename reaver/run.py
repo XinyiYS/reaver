@@ -51,6 +51,10 @@ flags.DEFINE_bool('test', False,
                   'Run an agent in test mode: restore flag is set to true and number of envs set to 1'
                   'Loss is calculated, but gradients are not applied.'
                   'Checkpoints, summaries, log files are not updated, but console logger is enabled.')
+flags.DEFINE_integer('replay_episodes', 0, "Save a replay after this many episodes. Default of 0 means don't save replays.")
+flags.DEFINE_string('replay_dir', None, 'Directory to save replays. '
+                                        'Linux distros will save on ~/StarCraftII/Replays/ + path(replay_dir)'
+                                        'Windows distros will save on path(replay_dir)')
 
 flags.DEFINE_alias('e', 'env')
 flags.DEFINE_alias('a', 'agent')
@@ -63,6 +67,8 @@ flags.DEFINE_alias('n', 'experiment')
 flags.DEFINE_alias('g', 'gin_bindings')
 flags.DEFINE_alias('r', 'restore')
 flags.DEFINE_alias('rx', 'restore_mix')
+flags.DEFINE_alias('re', 'replay_episodes')
+flags.DEFINE_alias('rd', 'replay_dir')
 
 
 def main(argv):
@@ -122,7 +128,11 @@ def main(argv):
                                                    new_env_name=args.env)
 
     env_cls = rvr.envs.GymEnv if '-v' in args.env else rvr.envs.SC2Env
-    env = env_cls(args.env, args.render, max_ep_len=args.max_ep_len)
+    env = env_cls(args.env,
+                  args.render,
+                  max_ep_len=args.max_ep_len,
+                  save_replay_episodes=args.replay_episodes,
+                  replay_dir=args.replay_dir)
 
     # use args.env and args.agent as the model_variable_scope
     agent = rvr.agents.registry[args.agent](

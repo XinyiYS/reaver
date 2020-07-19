@@ -11,7 +11,6 @@ from . import Env, Spec, Space
 ACTIONS_MINIGAMES, ACTIONS_MINIGAMES_ALL, ACTIONS_ALL = [
     'minigames', 'minigames_all', 'all']
 
-
 @gin.configurable
 class SC2Env(Env):
     """
@@ -32,6 +31,8 @@ class SC2Env(Env):
         spatial_dim=16,
         step_mul=8,
         obs_features=None,
+        save_replay_episodes=0,
+        replay_dir=None,
         action_ids=ACTIONS_MINIGAMES
     ):
         super().__init__(map_name, render, reset_done, max_ep_len)
@@ -39,6 +40,8 @@ class SC2Env(Env):
         self.step_mul = step_mul
         self.spatial_dim = spatial_dim
         self._env = None
+        self.save_replay_episodes = save_replay_episodes
+        self.replay_dir = replay_dir
 
         # sensible action set for all minigames
         # 24 actions
@@ -88,6 +91,8 @@ class SC2Env(Env):
                 rgb_minimap=None
             )],
             step_mul=self.step_mul,
+            save_replay_episodes=self.save_replay_episodes,
+            replay_dir=self.replay_dir,
             players=[sc2_env.Agent(sc2_env.Race.terran)])
 
     def step(self, action):
