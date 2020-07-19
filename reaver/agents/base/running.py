@@ -1,3 +1,4 @@
+import gin.tf
 import copy
 from . import Agent
 from reaver.envs.base import Env, MultiProcEnv
@@ -23,19 +24,40 @@ class RunningAgent(Agent):
             env.stop()
         self.on_finish()
 
+    '''
+    original code
+        def _run(self, env, n_steps):
+            # self.on_start()
+            obs, *_ = env.reset()
+            obs = [o.copy() for o in obs]
+            print(LOGGING_MSG_HEADER + " : running {} parallel env(s)".format(str(len(env.envs))))
+            for step in range(self.start_step, self.start_step + n_steps):
+                action, value = self.get_action_and_value(obs)
+                self.next_obs, reward, done = env.step(action)
+                self.on_step(step, obs, action, reward, done, value)
+                obs = [o.copy() for o in self.next_obs]
+            env.stop()
+            # self.on_finish()
+    '''
 
-    def _run(self, env, n_steps):
-        # self.on_start()
+    def _run(self, env, n_steps, terminating_threshold=None):
         obs, *_ = env.reset()
         obs = [o.copy() for o in obs]
         print(LOGGING_MSG_HEADER + " : running {} parallel env(s)".format(str(len(env.envs))))
         for step in range(self.start_step, self.start_step + n_steps):
             action, value = self.get_action_and_value(obs)
             self.next_obs, reward, done = env.step(action)
-            self.on_step(step, obs, action, reward, done, value)
+            # self.on_step(step, obs, action, reward, done, value)
+            logs = self.on_step(step, obs, action, reward, done, value)
             obs = [o.copy() for o in self.next_obs]
+
+            #check terminating_conditions
+            # simple average
+            if logs and terminating_threshold and logs['ep_rews_mean'] >= terminating_threshold:
+                print("Successfully reached the stopping reward threshold {}".format(terminating_threshold))
+                break
+
         env.stop()
-        # self.on_finish()
 
     def get_action_and_value(self, obs):
         return self.get_action(obs), None
@@ -63,31 +85,60 @@ class SyncRunningAgent(RunningAgent):
 
 
     def run(self, env: Env, n_steps=1000000):
-        if not self.args.test and env.id in SUB_ENV_DICT:
+
+        if self.args.test or (not self.args.HRL) or (env.id not in SUB_ENV_DICT):
+            # either testing or training without HRL at all
+            # or the env selected does not have the subenvs
+            env = self.wrap_env(env)
+            env.start()
+            try:
+                self.on_start()
+                self._run(env, n_steps)
+            except KeyboardInterrupt:
+                env.stop()
+
+            self.on_finish()
+
+        else:
+
+            assert self.args.HRL in ['human', 'systematic', 'random']
             subenvs = SUB_ENV_DICT[env.id]
-            print('Subenvs are: ', subenvs, "Running {} steps for each subenv".format(n_steps//len(subenvs)))
-            for subenv in subenvs:
+            print('Subenvs are: ', subenvs)
+            subenv_steps = [n_steps//len(subenvs) for subenv in subenvs]
+            thresholds = [None for subenv in subenvs ]
+
+            if self.args.HRL == 'human':
+                threshold = HRL_thredhold(env.id)
+            elif self.args.HRL == 'random':
+                import numpy as np
+                np.random.seed(1234)
+                indices = sorted(np.random.choice(n_steps, len(subenvs)-1, replace=False))
+                indices = [0] + sorted(np.random.choice(n_steps, I-1, replace=False)) + [n_steps]
+                subenv_steps = np.ediff1d(indices)
+            elif self.args.HRL == 'systematic':
+                pass
+                #  subenv_steps already defined and initializied
+
+            for subenv, subenv_step, threshold, in zip(subenvs, subenv_steps, threshold):
                 env = SC2Env(subenv, env.render, max_ep_len=env.max_ep_len)
-                print("Creating and Running {}".format(env.id))
+                print("Creating and Running subenv : {} with maximum {} steps, and reward threshold is {}.".format(env.id, subenv_step, threshold))
                 env = self.wrap_env(env)
                 env.start()
                 try:
                     self.on_start()
-                    self._run(env, n_steps//len(subenvs))
+                    self._run(env, subenv_step, threshold)
                 except KeyboardInterrupt:
                     env.stop()
-                    # self.on_finish()
                     break
+            self.on_finish()
 
-        else:
-            env = self.wrap_env(env)
-            env.start()
-            try:
-                self._run(env, n_steps)
-            except KeyboardInterrupt:
-                env.stop()
-        
-        self.on_finish()
+        """
+        terminating_conditions:
+            simple thresholds for episodic average
+            thredholds for running average
+            thresholds for amortized average
+
+        """
 
     def wrap_env(self, env: Env) -> Env:
           render, env.render = env.render, False
@@ -98,6 +149,31 @@ class SyncRunningAgent(RunningAgent):
 
 '''
 wrap_env and get_subenvs for concurrent and parallel subenvs
+    # if not self.args.test and env.id in SUB_ENV_DICT:
+    #     subenvs = SUB_ENV_DICT[env.id]
+    #     print('Subenvs are: ', subenvs, "Running {} steps for each subenv".format(n_steps//len(subenvs)))
+    #     for subenv in subenvs:
+    #         env = SC2Env(subenv, env.render, max_ep_len=env.max_ep_len)
+    #         print("Creating and Running {}".format(env.id))
+    #         env = self.wrap_env(env)
+    #         env.start()
+    #         try:
+    #             self.on_start()
+    #             self._run(env, n_steps//len(subenvs))
+    #         except KeyboardInterrupt:
+    #             env.stop()
+    #             # self.on_finish()
+    #             break
+
+    # else:
+    #     env = self.wrap_env(env)
+    #     env.start()
+    #     try:
+    #         self._run(env, n_steps)
+    #     except KeyboardInterrupt:
+    #         env.stop()
+
+    # self.on_finish()
 
     def wrap_env(self, env: Env) -> Env:
         print("{} from SyncRunningAgent: wrapping {}:{} to create {} environments.".format(LOGGING_MSG_HEADER, env, env.id, self.n_envs))
@@ -130,6 +206,15 @@ wrap_env and get_subenvs for concurrent and parallel subenvs
         return envs
 
 '''
+@gin.configurable('HRL_threshold')
+def HRL_thredhold(envId, BM, CMAG):
+    assert envId in ['BuildMarines', 'CollectMineralsAndGas']
+    if envId == 'BuildMarines':
+        return BM
+    else:
+        return CMAG
+
+
 SUB_ENV_DICT = {"BuildMarines": 
                                 [     
                                 "BuildSupplyDepots",

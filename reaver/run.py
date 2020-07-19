@@ -39,6 +39,11 @@ flags.DEFINE_multi_string('gin_files', [], 'List of path(s) to gin config(s).')
 flags.DEFINE_multi_string(
     'gin_bindings', [], 'Gin bindings to override config values.')
 
+
+flags.DEFINE_string('HRL', None,
+                  'Specify HRL\'s structure/algorithm. Must be one of (None, systematic, random, human). If None, not using HRL. '
+                  'If experiment not specified then last modified is used.')
+
 flags.DEFINE_bool('restore', False,
                   'Restore & continue previously executed experiment. '
                   'If experiment not specified then last modified is used.')
