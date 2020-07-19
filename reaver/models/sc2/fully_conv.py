@@ -23,8 +23,16 @@ def build_fully_conv(obs_spec, act_spec, data_format='channels_first', broadcast
         state = tf.concat([screen, minimap], axis=1)
 
     fc = Flatten(name="state_flat")(state)
-    fc = Dense(fc_dim, **dense_cfg('relu'))(fc)
+    # fc = Dense(fc_dim, **dense_cfg('relu'))(fc)
 
+    # Test the weight of this layer 
+    dense_test =  Dense(fc_dim, **dense_cfg('relu'))
+    fc = dense_test(fc)
+
+    weights = dense_test.get_weights()
+    print("the weight is ", weights)
+
+    
     value = Dense(1, name="value_out", **dense_cfg(scale=0.1))(fc)
     value = tf.squeeze(value, axis=-1)
 
@@ -74,13 +82,17 @@ def conv_cfg(data_format='channels_first', activation=None, scale=1.0):
         padding='same',
         activation=activation,
         data_format=data_format,
-        kernel_initializer=VarianceScaling(scale=2.0*scale)
+        # kernel_initializer=VarianceScaling(scale=2.0*scale),
+        # set the random seed to fix the initial parameters of model to control variable for comapring our algorithm against baseline
+        kernel_initializer=VarianceScaling(scale=2.0*scale, seed = 42)
     )
 
 
 def dense_cfg(activation=None, scale=1.0):
     return dict(
         activation=activation,
-        kernel_initializer=VarianceScaling(scale=2.0*scale)
+        # kernel_initializer=VarianceScaling(scale=2.0*scale)
+        # set the random seed to fix the initial parameters of model to control variable for comapring our algorithm against baseline
+        kernel_initializer=VarianceScaling(scale=2.0*scale, seed = 42)
     )
 

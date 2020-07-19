@@ -1,97 +1,84 @@
 WARNING:tensorflow:From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
 Instructions for updating:
 non-resource variables are not supported in the long term
-W0716 14:52:41.728570 140604299020096 deprecation.py:323] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+W0719 19:31:31.417236 140348952696640 deprecation.py:323] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
 Instructions for updating:
 non-resource variables are not supported in the long term
 WARNING:tensorflow:From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/keras/initializers.py:119: calling RandomUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
 Instructions for updating:
 Call initializer instance with the dtype argument instead of passing it to the constructor
-W0716 14:52:42.302942 140604299020096 deprecation.py:506] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/keras/initializers.py:119: calling RandomUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
+W0719 19:31:31.751370 140348952696640 deprecation.py:506] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/keras/initializers.py:119: calling RandomUniform.__init__ (from tensorflow.python.ops.init_ops) with dtype is deprecated and will be removed in a future version.
 Instructions for updating:
 Call initializer instance with the dtype argument instead of passing it to the constructor
 WARNING:tensorflow:From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
 Instructions for updating:
 If using Keras pass *_constraint arguments to layers.
-W0716 14:52:42.324259 140604299020096 deprecation.py:506] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
+W0719 19:31:31.768014 140348952696640 deprecation.py:506] From /home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/resource_variable_ops.py:1666: calling BaseResourceVariable.__init__ (from tensorflow.python.ops.resource_variable_ops) with constraint is deprecated and will be removed in a future version.
 Instructions for updating:
 If using Keras pass *_constraint arguments to layers.
-INFO:tensorflow:Restoring parameters from results/BuildMarines_ppo_20-07-13_17-14-56/checkpoints/ckpt-231500
-I0716 14:52:45.073729 140604299020096 saver.py:1293] Restoring parameters from results/BuildMarines_ppo_20-07-13_17-14-56/checkpoints/ckpt-231500
-I0716 14:52:45.312082 140604299020096 sc_process.py:135] Launching SC2: /home/neal/StarCraftII/Versions/Base75689/SC2_x64 -listen 127.0.0.1 -port 19680 -dataDir /home/neal/StarCraftII/ -tempDir /tmp/sc-31qfjlb1/
-I0716 14:52:45.326323 140604299020096 remote_controller.py:167] Connecting to: ws://127.0.0.1:19680/sc2api, attempt: 0, running: True
-Version: B75689 (SC2.4.10)
-Build: Aug 12 2019 17:16:57
-Command Line: '"/home/neal/StarCraftII/Versions/Base75689/SC2_x64" -listen 127.0.0.1 -port 19680 -dataDir /home/neal/StarCraftII/ -tempDir /tmp/sc-31qfjlb1/'
-Starting up...
-Startup Phase 1 complete
-I0716 14:52:46.328306 140604299020096 remote_controller.py:167] Connecting to: ws://127.0.0.1:19680/sc2api, attempt: 1, running: True
-Startup Phase 2 complete
-Creating stub renderer...
-Listening on: 127.0.0.1:19680
-Startup Phase 3 complete. Ready for commands.
-I0716 14:52:47.330438 140604299020096 remote_controller.py:167] Connecting to: ws://127.0.0.1:19680/sc2api, attempt: 2, running: True
-ConnectHandler: Request from 127.0.0.1:41826 accepted
-ReadyHandler: 127.0.0.1:41826 ready
-Requesting to join a single player game
-Configuring interface options
-Configure: raw interface disabled
-Configure: feature layer interface enabled
-Configure: score interface enabled
-Configure: render interface disabled
-Launching next game.
-Next launch phase started: 2
-Next launch phase started: 3
-Next launch phase started: 4
-Next launch phase started: 5
-Next launch phase started: 6
-Next launch phase started: 7
-Next launch phase started: 8
-Game has started.
-Using default stable ids, none found at: /home/neal/StarCraftII/stableid.json
-Successfully loaded stable ids: GameData\stableid.json
-Sending ResponseJoinGame
-I0716 14:52:51.001929 140604299020096 sc2_env.py:314] Environment is ready
-I0716 14:52:51.002338 140604299020096 sc2_env.py:507] Starting episode 1: [terran] on BuildMarines
-I0716 14:53:20.938114 140604299020096 sc2_env.py:725] Episode 1 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:53:20.951049 140604299020096 sc2_env.py:507] Starting episode 2: [terran] on BuildMarines
-I0716 14:53:34.277195 140604299020096 sc2_env.py:725] Episode 2 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:53:34.289974 140604299020096 sc2_env.py:507] Starting episode 3: [terran] on BuildMarines
-I0716 14:53:48.860896 140604299020096 sc2_env.py:725] Episode 3 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:53:48.874579 140604299020096 sc2_env.py:507] Starting episode 4: [terran] on BuildMarines
-I0716 14:54:01.212169 140604299020096 sc2_env.py:725] Episode 4 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:54:01.222210 140604299020096 sc2_env.py:507] Starting episode 5: [terran] on BuildMarines
-I0716 14:54:16.939831 140604299020096 sc2_env.py:725] Episode 5 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:54:16.949925 140604299020096 sc2_env.py:507] Starting episode 6: [terran] on BuildMarines
-I0716 14:54:31.431244 140604299020096 sc2_env.py:725] Episode 6 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:54:31.442210 140604299020096 sc2_env.py:507] Starting episode 7: [terran] on BuildMarines
-I0716 14:54:45.572158 140604299020096 sc2_env.py:725] Episode 7 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:54:45.581084 140604299020096 sc2_env.py:507] Starting episode 8: [terran] on BuildMarines
-I0716 14:54:58.625763 140604299020096 sc2_env.py:725] Episode 8 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:54:58.639927 140604299020096 sc2_env.py:507] Starting episode 9: [terran] on BuildMarines
-I0716 14:55:12.699451 140604299020096 sc2_env.py:725] Episode 9 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:55:12.713083 140604299020096 sc2_env.py:507] Starting episode 10: [terran] on BuildMarines
-I0716 14:55:25.327264 140604299020096 sc2_env.py:725] Episode 10 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:55:25.340110 140604299020096 sc2_env.py:507] Starting episode 11: [terran] on BuildMarines
-I0716 14:55:37.521734 140604299020096 sc2_env.py:725] Episode 11 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:55:37.533918 140604299020096 sc2_env.py:507] Starting episode 12: [terran] on BuildMarines
-I0716 14:55:50.127113 140604299020096 sc2_env.py:725] Episode 12 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:55:50.146987 140604299020096 sc2_env.py:507] Starting episode 13: [terran] on BuildMarines
-I0716 14:56:03.845762 140604299020096 sc2_env.py:725] Episode 13 finished after 14400 game steps. Outcome: [1], reward: [0], score: [0]
-Game has started.
-I0716 14:56:03.855011 140604299020096 sc2_env.py:507] Starting episode 14: [terran] on BuildMarines
-I0716 14:56:14.029772 140604299020096 sc2_env.py:752] Environment Close
-I0716 14:56:14.049168 140604299020096 sc_process.py:232] Shutdown gracefully.
-I0716 14:56:14.049278 140604299020096 sc_process.py:210] Shutdown with return code: -2
+Traceback (most recent call last):
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/framework/ops.py", line 2328, in get_attr
+    pywrap_tf_session.TF_OperationGetAttrValueProto(self._c_op, name, buf)
+tensorflow.python.framework.errors_impl.InvalidArgumentError: Operation 'MoveToBeacon_a2c/MoveToBeacon_a2c_Categorical_6/entropy/Max' has no attr named '_XlaCompile'.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/gradients_util.py", line 331, in _MaybeCompile
+    xla_compile = op.get_attr("_XlaCompile")
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/framework/ops.py", line 2332, in get_attr
+    raise ValueError(str(e))
+ValueError: Operation 'MoveToBeacon_a2c/MoveToBeacon_a2c_Categorical_6/entropy/Max' has no attr named '_XlaCompile'.
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/neal/Desktop/MedicalComputingLab/AI-Warriors/HAI-SC/reaver/reaver/run.py", line 154, in <module>
+    app.run(main)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/absl/app.py", line 299, in run
+    _run_main(main, args)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/absl/app.py", line 250, in _run_main
+    sys.exit(main(argv))
+  File "/home/neal/Desktop/MedicalComputingLab/AI-Warriors/HAI-SC/reaver/reaver/run.py", line 139, in main
+    env.obs_spec(), env.act_spec(), sess_mgr=sess_mgr, n_envs=args.n_envs, subagents_dir=args.subagents_dir)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/gin/config.py", line 1055, in gin_wrapper
+    return fn(*new_args, **new_kwargs)
+  File "/home/neal/Desktop/MedicalComputingLab/AI-Warriors/HAI-SC/reaver/reaver/agents/a2c.py", line 47, in __init__
+    self, obs_spec, act_spec, sess_mgr=sess_mgr, **kwargs)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/gin/config.py", line 1055, in gin_wrapper
+    return fn(*new_args, **new_kwargs)
+  File "/home/neal/Desktop/MedicalComputingLab/AI-Warriors/HAI-SC/reaver/reaver/agents/base/actor_critic.py", line 92, in __init__
+    grads, vars = zip(*optimizer.compute_gradients(self.loss_op))
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/training/optimizer.py", line 512, in compute_gradients
+    colocate_gradients_with_ops=colocate_gradients_with_ops)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/gradients_impl.py", line 172, in gradients
+    unconnected_gradients)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/gradients_util.py", line 669, in _GradientsHelper
+    lambda: grad_fn(op, *out_grads))
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/gradients_util.py", line 336, in _MaybeCompile
+    return grad_fn()  # Exit early
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/gradients_util.py", line 669, in <lambda>
+    lambda: grad_fn(op, *out_grads))
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/math_grad.py", line 241, in _MaxGrad
+    return _MinOrMaxGrad(op, grad)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/math_grad.py", line 219, in _MinOrMaxGrad
+    input_shape = array_ops.shape(op.inputs[0])
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/array_ops.py", line 602, in shape
+    return shape_internal(input, name, optimize=True, out_type=out_type)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/array_ops.py", line 630, in shape_internal
+    return gen_array_ops.shape(input, name=name, out_type=out_type)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/ops/gen_array_ops.py", line 8878, in shape
+    "Shape", input=input, out_type=out_type, name=name)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/framework/op_def_library.py", line 744, in _apply_op_helper
+    attrs=attr_protos, op_def=op_def)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/framework/ops.py", line 3328, in _create_op_internal
+    self._create_op_helper(ret, compute_device=compute_device)
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/framework/ops.py", line 3383, in _create_op_helper
+    kernel_label = self._op_to_kernel_label_map[op.type]
+  File "/home/neal/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/framework/ops.py", line 2221, in type
+    return pywrap_tf_session.TF_OperationOpType(self._c_op)
+KeyboardInterrupt
