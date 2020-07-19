@@ -1,15 +1,24 @@
-Current environment: ScoutingForNexus, Previous experiment: None, Agent type: a2c.
-Experiment path: results/ScoutingForNexus_a2c_20-07-10_16-07-30
-pygame 1.9.6
-Hello from the pygame community. https://www.pygame.org/contribute.html
-subagents
-LOGGING FROM <reaver.reaver.agents.base.actor_critic>  : the current model_variable_scope is ScoutingForNexus_a2c
-LOGGING FROM <reaver.reaver.agents.base.actor_critic>  : main_model setup on sess and graph complete
-LOGGING FROM <reaver.reaver.utils.tensorflow> : env name of the checkpoint loading from is <ScoutingForNexus_>
-LOGGING FROM <reaver.reaver.utils.tensorflow> : checking dir in this format <results/ScoutingForNexus_> for checkpoints
-LOGGING FROM <reaver.reaver.utils.tensorflow> : Found checkpoints are [].
-LOGGING FROM <reaver.reaver.utils.tensorflow> : model for ScoutingForNexus_a2c loaded and saver restored.
-LOGGING FROM <reaver.reaver.utils.tensorflow> : 132 global variables 
-LOGGING FROM <reaver.reaver.utils.tensorflow> : 132 variables under ScoutingForNexus_a2c 
-LOGGING FROM <reaver.reaver.utils.tensorflow> : checkpoint saving directory results/ScoutingForNexus_a2c_20-07-10_16-07-30/checkpoints
-LOGGING FROM <reaver.reaver.agents.base.actor_critic>  : main_model weights restore/init complete
+WARNING:tensorflow:From /home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+W0715 20:40:23.098880 139638176261952 deprecation.py:323] From /home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/tensorflow/python/compat/v2_compat.py:96: disable_resource_variables (from tensorflow.python.ops.variable_scope) is deprecated and will be removed in a future version.
+Instructions for updating:
+non-resource variables are not supported in the long term
+Traceback (most recent call last):
+  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/runpy.py", line 193, in _run_module_as_main
+    "__main__", mod_spec)
+  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/runpy.py", line 85, in _run_code
+    exec(code, run_globals)
+  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/run.py", line 144, in <module>
+    app.run(main)
+  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/absl/app.py", line 299, in run
+    _run_main(main, args)
+  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/absl/app.py", line 250, in _run_main
+    sys.exit(main(argv))
+  File "/home/tiancheng/AI-Warriors/HAI-SC/reaver/reaver/run.py", line 99, in main
+    gin.parse_config_files_and_bindings(gin_files, args.gin_bindings)
+  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/gin/config.py", line 1737, in parse_config_files_and_bindings
+    parse_config_file(config_file, skip_unknown)
+  File "/home/tiancheng/anaconda3/envs/hai-sc/lib/python3.6/site-packages/gin/config.py", line 1705, in parse_config_file
+    raise IOError(err_str.format(config_file, prefixes))
+OSError: Unable to open file: results/BuildMarines_ppo_Model_Num_3/config.gin. Searched config paths: [''].
