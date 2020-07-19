@@ -29,8 +29,8 @@ def build_fully_conv(obs_spec, act_spec, data_format='channels_first', broadcast
     dense_test =  Dense(fc_dim, **dense_cfg('relu'))
     fc = dense_test(fc)
 
-    weights = dense_test.get_weights()
-    print("the weight is ", weights)
+    # weights = dense_test.get_weights()
+    # print("the weight is ", weights)
 
     
     value = Dense(1, name="value_out", **dense_cfg(scale=0.1))(fc)
