@@ -80,33 +80,28 @@ class ActorCriticAgent(MemoryAgent):
 
         print(LOGGING_MSG_HEADER + " : the current model_variable_scope is", self.model_variable_scope)
         # implement the a2c to support multiple subagents
-        with tf.variable_scope(self.model_variable_scope):
-            self.model = model_fn(obs_spec, act_spec)
         # self.model = model_fn(obs_spec, act_spec)
+        with sess_mgr.sess.graph.as_default():
+            # note this is name_scope as opposed to variable_scope, important
+            with tf.name_scope(self.sess_mgr.main_tf_vs.original_name_scope):
+                self.model = model_fn(obs_spec, act_spec)
+                self.value = self.model.outputs[-1]
+                self.policy = policy_cls(act_spec, self.model.outputs[:-1])
+                self.loss_op, self.loss_terms, self.loss_inputs = self.loss_fn()
 
-        # init self.sub_agent_models so these are included in tf_graph
-        self.n_subagents = self.sess_mgr.n_subagents
-        if self.n_subagents != 0:
-            self.init_subagent_models([model_fn]*self.n_subagents,
-                                    [obs_spec]*self.n_subagents,
-                                    [act_spec]*self.n_subagents,
-                                    self.n_subagents,
-                                    self.sess_mgr.subagent_variable_scopes)
+                grads, vars = zip(*optimizer.compute_gradients(self.loss_op))
+                self.grads_norm = tf.global_norm(grads)
+                if clip_grads_norm > 0.:
+                    grads, _ = tf.clip_by_global_norm(
+                        grads, clip_grads_norm, self.grads_norm)
+                self.train_op = optimizer.apply_gradients(
+                    zip(grads, vars), global_step=sess_mgr.global_step)
+                self.minimize_ops = self.make_minimize_ops()
 
-        self.value = self.model.outputs[-1]
-        self.policy = policy_cls(act_spec, self.model.outputs[:-1])
-        self.loss_op, self.loss_terms, self.loss_inputs = self.loss_fn()
-
-        grads, vars = zip(*optimizer.compute_gradients(self.loss_op))
-        self.grads_norm = tf.global_norm(grads)
-        if clip_grads_norm > 0.:
-            grads, _ = tf.clip_by_global_norm(
-                grads, clip_grads_norm, self.grads_norm)
-        self.train_op = optimizer.apply_gradients(
-            zip(grads, vars), global_step=sess_mgr.global_step)
-        self.minimize_ops = self.make_minimize_ops()
-
+        print(LOGGING_MSG_HEADER + " : main_model setup on sess and graph complete")
         sess_mgr.restore_or_init()
+        print(LOGGING_MSG_HEADER + " : main_model weights restore/init complete")
+
         self.n_batches = sess_mgr.start_step
         self.start_step = sess_mgr.start_step * traj_len
 
@@ -132,8 +127,9 @@ class ActorCriticAgent(MemoryAgent):
         loss_terms, grads_norm = self.minimize(adv, returns)
 
         self.sess_mgr.on_update(self.n_batches)
-        self.logger.on_update(self.n_batches, loss_terms,
+        logs = self.logger.on_update(self.n_batches, loss_terms,
                               grads_norm, returns, adv, next_values)
+        return logs
 
     def minimize(self, advantages, returns):
         inputs = self.obs + self.acts + [advantages, returns]
@@ -192,19 +188,6 @@ class ActorCriticAgent(MemoryAgent):
         # note: this will most likely break if model.compile() is used
         ops.extend(self.model.get_updates_for(None))
         return ops
-
-    def init_subagent_models(self, model_fns, obs_specs, act_specs,
-                             n_subagents=0, subagent_variable_scopes=[]):
-        assert n_subagents == len(model_fns) == len(obs_specs) == len(act_specs) == len(
-            subagent_variable_scopes), "The number of subagents is not equal to the number of model_fns, or obs_specs, or act_specs"
-        self.subagent_models = []
-        self.subagent_variable_scopes = subagent_variable_scopes
-
-        # need to give proper names to the subagent models
-        # for tf.variable_scope loading and saving
-        for model_fn, obs_spec, act_spec, sub_agent_index, subagent_variable_scope in zip(model_fns, obs_specs, act_specs, range(n_subagents), subagent_variable_scopes):
-            with tf.variable_scope(subagent_variable_scope):
-                self.subagent_models.append(model_fn(obs_spec, act_spec))
 
     @staticmethod
     def discounted_cumsum(x, discount):

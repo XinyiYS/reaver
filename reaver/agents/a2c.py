@@ -34,11 +34,16 @@ class AdvantageActorCriticAgent(SyncRunningAgent, ActorCriticAgent):
         clip_grads_norm=DEFAULTS['clip_grads_norm'],
         normalize_returns=DEFAULTS['normalize_returns'],
         normalize_advantages=DEFAULTS['normalize_advantages'],
+        **kwargs,
     ):
+        if 'subagents_dir' in kwargs:
+            print(kwargs['subagents_dir'])
+        args = kwargs['args'] if 'args' in kwargs else None #include the experimental args
+
         kwargs = {k: v for k, v in locals().items(
         ) if k in DEFAULTS and DEFAULTS[k] != v}
 
-        SyncRunningAgent.__init__(self, n_envs)
+        SyncRunningAgent.__init__(self, n_envs, args)
         ActorCriticAgent.__init__(
             self, obs_spec, act_spec, sess_mgr=sess_mgr, **kwargs)
         self.logger = StreamLogger(

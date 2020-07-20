@@ -10,7 +10,7 @@ ACAgent.value_coef = 0.5
 ACAgent.entropy_coef = 0.001
 
 ACAgent.batch_sz = 32
-ACAgent.traj_len = 16
+ACAgent.traj_len = 40
 
 ACAgent.discount = 0.99
 ACAgent.gae_lambda = 0.0
@@ -35,3 +35,17 @@ PPOAgent.clip_ratio = 0.2
 PPOAgent.clip_value = 0.0
 
 PPOAgent.normalize_advantages = True
+
+# params for HAI:
+# ==========================================
+HAIAgent.model_fn = @build_fully_conv
+HAIAgent.policy_cls = @SC2MultiPolicy
+
+
+# params for HRL_threshold
+# ==========================================
+HRL_threshold.BM = [5,5,5,5,5]
+HRL_threshold.CMAG = [100,5,5,5,5]
+
+
+

@@ -30,6 +30,8 @@ flags.DEFINE_integer('max_ep_len', None,
 
 flags.DEFINE_string('results_dir', 'results',
                     'Directory for model weights, train logs, etc.')
+flags.DEFINE_string('subagents_dir', 'subagents',
+                    'Only used for HAI agent to load the subagents\' models.')
 flags.DEFINE_string('experiment', None,
                     'Name of the experiment. Datetime by default.')
 
@@ -37,8 +39,16 @@ flags.DEFINE_multi_string('gin_files', [], 'List of path(s) to gin config(s).')
 flags.DEFINE_multi_string(
     'gin_bindings', [], 'Gin bindings to override config values.')
 
+
+flags.DEFINE_string('HRL', None,
+                  'Specify HRL\'s structure/algorithm. Must be one of (None, systematic, random, human). If None, not using HRL. '
+                  'If experiment not specified then last modified is used.')
+
 flags.DEFINE_bool('restore', False,
                   'Restore & continue previously executed experiment. '
+                  'If experiment not specified then last modified is used.')
+flags.DEFINE_bool('restore_mix', False,
+                  'Restore & continue training from a different previously executed experiment. '
                   'If experiment not specified then last modified is used.')
 flags.DEFINE_bool('test', False,
                   'Run an agent in test mode: restore flag is set to true and number of envs set to 1'
@@ -54,7 +64,10 @@ flags.DEFINE_alias('cf', 'ckpt_freq')
 flags.DEFINE_alias('la', 'log_eps_avg')
 flags.DEFINE_alias('n', 'experiment')
 flags.DEFINE_alias('g', 'gin_bindings')
+flags.DEFINE_alias('r', 'restore')
+flags.DEFINE_alias('rx', 'restore_mix')
 
+LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.run.py>  script"
 
 def main(argv):
     tf.disable_eager_execution()
@@ -73,7 +86,7 @@ def main(argv):
         args.restore = True
 
     expt = rvr.utils.Experiment(
-        args.results_dir, args.env, args.agent, args.experiment, args.restore)
+        args.results_dir, args.env, args.agent, args.experiment, args.restore, args.restore_mix)
 
     gin_files = rvr.utils.find_configs(
         args.env, os.path.dirname(os.path.abspath(__file__)))
@@ -96,26 +109,41 @@ def main(argv):
     sess = tf.Session(config=config)
     # sess = tf.Session(config=tf.ConfigProto(allow_soft_placement=True))
 
-    model_variable_scope = "{}_{}".format(str(args.env), str(args.agent))
+    print("Current environment: {}, Previous experiment: {}, Agent type: {}.".format(str(args.env), str(args.experiment), str(args.agent)))
+    print("Experiment path: {}".format(expt.path))
+    if args.restore_mix:
+        model_variable_scope = "{}_{}".format(str(args.experiment), str(args.agent))
+    else:
+        model_variable_scope = "{}_{}".format(str(args.env), str(args.agent))
+
     sess_mgr = rvr.utils.tensorflow.SessionManager(sess,
                                                    expt.path,
                                                    args.ckpt_freq,
                                                    model_variable_scope=model_variable_scope,
-                                                   training_enabled=not args.test)
+                                                   training_enabled=not args.test,
+                                                   restore_mix=args.restore_mix,
+                                                   env_name=args.experiment,
+                                                   new_env_name=args.env)
 
     env_cls = rvr.envs.GymEnv if '-v' in args.env else rvr.envs.SC2Env
     env = env_cls(args.env, args.render, max_ep_len=args.max_ep_len)
 
     # use args.env and args.agent as the model_variable_scope
     agent = rvr.agents.registry[args.agent](
-        env.obs_spec(), env.act_spec(), sess_mgr=sess_mgr, n_envs=args.n_envs)
+        env.obs_spec(), env.act_spec(), 
+        sess_mgr=sess_mgr, 
+        n_envs=args.n_envs, subagents_dir=args.subagents_dir, args=args)
     agent.logger = rvr.utils.StreamLogger(
         args.n_envs, args.log_freq, args.log_eps_avg, sess_mgr, expt.log_path)
 
     if sess_mgr.training_enabled:
         expt.save_gin_config()
+        expt.save_experiment_config()
         expt.save_model_summary(agent.model)
 
+    print("{}: initialized env is {}:{}".format(LOGGING_MSG_HEADER, env, env.id))
+    print(LOGGING_MSG_HEADER + " Sample efficiency related info: batch_size is {}, trajectory length is {}, specified number of updates is {}, so number of samples is {}"
+      .format(agent.batch_sz, agent.traj_len, args.n_updates, agent.batch_sz * agent.traj_len * args.n_updates ))
     agent.run(env, args.n_updates * agent.traj_len *
               agent.batch_sz // args.n_envs)
 
