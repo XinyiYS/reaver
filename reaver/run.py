@@ -41,6 +41,11 @@ flags.DEFINE_multi_string('gin_files', [], 'List of path(s) to gin config(s).')
 flags.DEFINE_multi_string(
     'gin_bindings', [], 'Gin bindings to override config values.')
 
+
+flags.DEFINE_string('HRL', None,
+                  'Specify HRL\'s structure/algorithm. Must be one of (None, systematic, random, human). If None, not using HRL. '
+                  'If experiment not specified then last modified is used.')
+
 flags.DEFINE_bool('restore', False,
                   'Restore & continue previously executed experiment. '
                   'If experiment not specified then last modified is used.')
@@ -70,6 +75,7 @@ flags.DEFINE_alias('rx', 'restore_mix')
 flags.DEFINE_alias('re', 'replay_episodes')
 flags.DEFINE_alias('rd', 'replay_dir')
 
+LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.run.py>  script"
 
 def main(argv):
     tf.disable_eager_execution()
@@ -136,7 +142,9 @@ def main(argv):
 
     # use args.env and args.agent as the model_variable_scope
     agent = rvr.agents.registry[args.agent](
-        env.obs_spec(), env.act_spec(), sess_mgr=sess_mgr, n_envs=args.n_envs, subagents_dir=args.subagents_dir)
+        env.obs_spec(), env.act_spec(), 
+        sess_mgr=sess_mgr, 
+        n_envs=args.n_envs, subagents_dir=args.subagents_dir, args=args)
     agent.logger = rvr.utils.StreamLogger(
         args.n_envs, args.log_freq, args.log_eps_avg, sess_mgr, expt.log_path)
 
@@ -145,6 +153,9 @@ def main(argv):
         expt.save_experiment_config()
         expt.save_model_summary(agent.model)
 
+    print("{}: initialized env is {}:{}".format(LOGGING_MSG_HEADER, env, env.id))
+    print(LOGGING_MSG_HEADER + " Sample efficiency related info: batch_size is {}, trajectory length is {}, specified number of updates is {}, so number of samples is {}"
+      .format(agent.batch_sz, agent.traj_len, args.n_updates, agent.batch_sz * agent.traj_len * args.n_updates ))
     agent.run(env, args.n_updates * agent.traj_len *
               agent.batch_sz // args.n_envs)
 

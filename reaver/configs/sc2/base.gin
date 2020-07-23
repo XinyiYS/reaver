@@ -40,3 +40,12 @@ PPOAgent.normalize_advantages = True
 # ==========================================
 HAIAgent.model_fn = @build_fully_conv
 HAIAgent.policy_cls = @SC2MultiPolicy
+
+
+# params for HRL_threshold
+# ==========================================
+HRL_threshold.BM = [5,5,5,5,5]
+HRL_threshold.CMAG = [100,5,5,5,5]
+
+
+

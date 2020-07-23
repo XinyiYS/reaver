@@ -69,6 +69,7 @@ class StreamLogger(Logger):
         frames = step * np.prod(returns.shape)
         run_time = max(1, int(time.time() - self.start_time)) + self.run_time
         ep_rews = np.array(self.ep_rews_sum or [0])
+        print("Episode reward shape is {}".format(ep_rews.shape))
 
         logs = dict(
             runtime=run_time,
@@ -89,6 +90,7 @@ class StreamLogger(Logger):
         self.stream_logs(logs)
         if self.sess_mgr:
             self.summarize_logs(logs)
+        return logs
 
     def stream_logs(self, logs):
         log_str = ""

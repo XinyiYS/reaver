@@ -127,8 +127,9 @@ class ActorCriticAgent(MemoryAgent):
         loss_terms, grads_norm = self.minimize(adv, returns)
 
         self.sess_mgr.on_update(self.n_batches)
-        self.logger.on_update(self.n_batches, loss_terms,
+        logs = self.logger.on_update(self.n_batches, loss_terms,
                               grads_norm, returns, adv, next_values)
+        return logs
 
     def minimize(self, advantages, returns):
         inputs = self.obs + self.acts + [advantages, returns]
