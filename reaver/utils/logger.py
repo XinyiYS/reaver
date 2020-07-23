@@ -4,7 +4,7 @@ import time
 import numpy as np
 from collections import deque, namedtuple
 
-
+LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.utils.Logger> "
 class Logger:
     def on_start(self): ...
 
@@ -69,7 +69,7 @@ class StreamLogger(Logger):
         frames = step * np.prod(returns.shape)
         run_time = max(1, int(time.time() - self.start_time)) + self.run_time
         ep_rews = np.array(self.ep_rews_sum or [0])
-        print("Episode reward shape is {}".format(ep_rews.shape))
+        print(LOGGING_MSG_HEADER + ": Episode reward shape is {}".format(ep_rews.shape))
 
         logs = dict(
             runtime=run_time,
