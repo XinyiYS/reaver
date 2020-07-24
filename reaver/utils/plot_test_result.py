@@ -2,10 +2,10 @@ import re
 import argparse
 import numpy as np
 
-def get_reward_data(log_file_path):
-    regex = 'reward: \[.\]'
+def get_score_data(log_file_path):
+    regex = 'score: \[.\]'
 
-    # get expressions like "reward: [0]" and store them in this list
+    # get expressions like "score: [0]" and store them in this list
     match_list = []
     with open(log_file_path, "r") as file:
         for line in file:
@@ -13,13 +13,13 @@ def get_reward_data(log_file_path):
                 match_text = match.group()
                 match_list.append(match_text)
 
-        reward_list = []
+        score_list = []
         for expressions in match_list:
             # get the number
-            reward = int(expressions[9])
-            reward_list.append(reward)
+            score = int(expressions[8])
+            score_list.append(score)
 
-        return reward_list
+        return score_list
 
 
 if __name__ == '__main__':
@@ -27,6 +27,7 @@ if __name__ == '__main__':
     parser.add_argument('logdir', type=str)
     args = parser.parse_args()
 
-    reward_list = get_reward_data(args.logdir)
-    print("Mean is ", np.mean(reward_list))    
-    print("Std deviation is ", np.std(reward_list))
+    score_list = get_score_data(args.logdir)
+    # print("score list is ", score_list)
+    print("Mean is ", np.mean(score_list))    
+    print("Std deviation is ", np.std(score_list))
