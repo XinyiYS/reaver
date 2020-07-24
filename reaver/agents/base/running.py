@@ -54,7 +54,7 @@ class RunningAgent(Agent):
             #check terminating_conditions
             # simple average
             if logs and terminating_threshold and logs['ep_rews_mean'] >= terminating_threshold:
-                print("Successfully reached the stopping reward threshold {}".format(terminating_threshold))
+                print(LOGGING_MSG_HEADER + ": Successfully reached the stopping reward threshold {}".format(terminating_threshold))
                 break
 
         env.stop()
@@ -103,12 +103,15 @@ class SyncRunningAgent(RunningAgent):
 
             assert self.args.HRL in ['human', 'systematic', 'random']
             subenvs = SUB_ENV_DICT[env.id]
-            print('Subenvs are: ', subenvs)
+            print(LOGGING_MSG_HEADER + "： Subenvs are: ", subenvs)
             subenv_steps = [n_steps//len(subenvs) for subenv in subenvs]
-            thresholds = [None for subenv in subenvs ]
+            thresholds = [None for subenv in subenvs]
 
             if self.args.HRL == 'human':
-                threshold = HRL_thredhold(env.id)
+                thresholds = HRL_thredhold(env.id)
+
+                print(LOGGING_MSG_HEADER + "： Reward thresholds are: ", thresholds)
+
             elif self.args.HRL == 'random':
                 import numpy as np
                 np.random.seed(1234)
@@ -119,9 +122,10 @@ class SyncRunningAgent(RunningAgent):
                 pass
                 #  subenv_steps already defined and initializied
 
-            for subenv, subenv_step, threshold, in zip(subenvs, subenv_steps, threshold):
+
+            for subenv, subenv_step, threshold, in zip(subenvs, subenv_steps, thresholds):
                 env = SC2Env(subenv, env.render, max_ep_len=env.max_ep_len)
-                print("Creating and Running subenv : {} with maximum {} steps, and reward threshold is {}.".format(env.id, subenv_step, threshold))
+                print(LOGGING_MSG_HEADER + ": Creating and Running subenv : {} with maximum {} steps, and reward threshold is {}.".format(env.id, subenv_step, threshold))
                 env = self.wrap_env(env)
                 env.start()
                 try:
