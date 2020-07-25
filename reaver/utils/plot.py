@@ -60,3 +60,5 @@ if __name__ == '__main__':
         plot_from_summaries(path, title, args.samples_per_update, args.updates_per_log)
     plt.tight_layout()
     plt.show()
+    # save the figure on the server to see from local machine
+    plt.savefig(fname = "./result_plot.png")
