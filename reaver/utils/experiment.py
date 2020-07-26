@@ -5,7 +5,7 @@ from datetime import datetime as dt
 
 
 class Experiment:
-    def __init__(self, results_dir, env_name, agent_name, name=None, restore=False, restore_mix=False):
+    def __init__(self, results_dir, env_name, agent_name, name=None, restore=False, restore_mix=False, args=None):
         if not name:
             if restore:
                 experiments = [e for e in os.listdir(results_dir) if env_name in e and agent_name in e]
@@ -28,6 +28,7 @@ class Experiment:
         self.env_name = env_name
         self.agent_name = agent_name
         self.results_dir = results_dir
+        self.args = args
 
         os.makedirs(self.path, exist_ok=True)
         os.makedirs(self.path + '/summaries', exist_ok=True)
@@ -69,9 +70,12 @@ class Experiment:
     
     def save_experiment_config(self):
         ex_config_dict = {"name": self.name, "restore": self.restore,
-                            "env": self.env_name, "agent": self.agent_name,
+                            "env": self.env_name, "n_envs": self.args.n_envs,
+                            "agent": self.agent_name,
                             "results_dir": self.results_dir, 
-                            "time": dt.now().strftime("%y-%m-%d_%H-%M-%S")
+                            "time": dt.now().strftime("%y-%m-%d_%H-%M-%S"),
+                            "HRL": self.args.HRL,
+                            "max_ep_len": self.args.max_ep_len,
                             }
         with open(self.experiment_config_path, 'a') as ex_cfg_file:                
             ex_cfg_file.write(json.dumps(ex_config_dict))

@@ -124,7 +124,6 @@ class SyncRunningAgent(RunningAgent):
 
             if self.args.HRL == 'human':
                 thresholds = HRL_thredhold(env.id)
-
                 print(LOGGING_MSG_HEADER + "： Reward thresholds are: ", thresholds)
 
             elif self.args.HRL == 'random':
@@ -172,11 +171,11 @@ class SyncRunningAgent(RunningAgent):
     def _run_subenvs(self, env, n_steps, subenvs=[]):
         obs, *_ = env.reset()
         obs = [o.copy() for o in obs]
-        print(LOGGING_MSG_HEADER + " : running {} parallel env(s)".format(str(len(env.envs))))
+        print(LOGGING_MSG_HEADER + " : running {} parallel env(s) in HRL subenvs paradigm".format(str(len(env.envs))))
 
         # take turns for the subpolicies to to take actions
-        # each act for 10/50/100 steps
-        # this 1280 is a magic number for BuildMarines minigame
+         
+        # this 1280 is a magic number for testing minigame, need to be fixed
         turns = 1280 // len(subenvs)
         print(LOGGING_MSG_HEADER + " : each subpolicy takes {} steps of actions and taking turns".format(turns))
 
@@ -188,6 +187,8 @@ class SyncRunningAgent(RunningAgent):
             self.next_obs, reward, done = env.step(action)
             
             logs = self.on_step(step, obs, action, reward, done, value, subenv_id=subenv_id)
+            # if logs:
+            #     print("For a logs the step is :", step)
             obs = [o.copy() for o in self.next_obs]
 
         env.stop()

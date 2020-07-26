@@ -86,7 +86,7 @@ def main(argv):
         args.restore = True
 
     expt = rvr.utils.Experiment(
-        args.results_dir, args.env, args.agent, args.experiment, args.restore, args.restore_mix)
+        args.results_dir, args.env, args.agent, args.experiment, args.restore, args.restore_mix, args)
 
     gin_files = rvr.utils.find_configs(
         args.env, os.path.dirname(os.path.abspath(__file__)))
