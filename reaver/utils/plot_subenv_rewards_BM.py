@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import os
 
 
 SUBENV_LIST = ['BuildSupplyDepots', 'BuildBarracks', 'BuildMarinesWithBarracks','BuildMarines']
@@ -63,10 +64,20 @@ if __name__ == '__main__':
         plt.subplot(n_rows,1, 1 + idx)
         plt.plot(list)
         plt.title(title)
+        if idx == 3:
+            plt.xlabel("Trainning trajectory")
+            plt.ylabel("Reward Received")
 
     plt.tight_layout()
     plt.show()
-    plt.savefig(fname = "./HRL_result_plot.png")
+    filename = args.logdir.split('/')[-1]
+
+    parent_path = os.path.abspath(os.path.join(args.logdir, os.pardir))
+    if os.path.isdir(parent_path + "/pictures/") == False:
+        os.mkdir(parent_path + "/pictures/")
+        plt.savefig(fname = "{parent_path}/pictures/{fname}.png".format(parent_path = parent_path ,fname = "trainning result"))
+    else:
+        plt.savefig(fname = "{parent_path}/pictures/{fname}.png".format(parent_path = parent_path ,fname = "trainning result"))
 
 
     

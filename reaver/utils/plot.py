@@ -16,7 +16,7 @@ def plot_from_summaries(summaries_path, title=None, samples_per_update=512, upda
     rews_mean = np.array([s[2] for s in acc.Scalars('Rewards/Mean')])
     rews_std = np.array([s[2] for s in acc.Scalars('Rewards/Std')])
     x = samples_per_update * updates_per_log * np.arange(0, len(rews_mean))
-
+    
     if not title:
         title = summaries_path.split('/')[-1].split('_')[0]
 

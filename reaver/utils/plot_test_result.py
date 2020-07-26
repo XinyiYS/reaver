@@ -24,6 +24,6 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     score_list = get_score_data(args.logdir)
-    # print("score list is ", score_list)
+    print("score list is ", score_list)
     print("Mean is ", np.mean(score_list))    
     print("Std deviation is ", np.std(score_list))
