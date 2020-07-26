@@ -18,6 +18,9 @@ class MemoryAgent(RunningAgent):
         self.batch_ptr = 0
         self.n_batches = 0
 
+        self.obs_spec = obs_spec
+        self.act_spec = act_spec
+
         self.dones = np.empty(self.shape, dtype=np.bool)
         self.values = np.empty(self.shape, dtype=np.float32)
         self.rewards = np.empty(self.shape, dtype=np.float32)

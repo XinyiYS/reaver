@@ -133,6 +133,17 @@ class StreamLogger(Logger):
         self.run_time = int(logs[0].split(" ")[-1])
         self.env_eps.append(int(logs[2].split(" ")[-1]))
 
+    def reset(self):
+        """
+        Introduced for HRL with multiple different subenvs:
+        when the agent starts to learn a new subenv: the logs are reset
+        """
+        self.env_eps = [0]*self.n_envs
+        self.env_rews = [0]*self.n_envs
+        self.ep_rews_sum = deque([], maxlen=self.rew_avg_eps)
+
+        self.run_time = 0
+        self.start_time = time.time()
 
 class AgentDebugLogger(Logger):
     def __init__(self, agent, log_freq=100, debug_steps=10):

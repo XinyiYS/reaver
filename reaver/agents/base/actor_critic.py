@@ -180,6 +180,16 @@ class ActorCriticAgent(MemoryAgent):
     def on_finish(self):
         self.logger.on_finish()
 
+    def reset(self):
+        """
+        Introduced for HRL with multiple subenvs trained in sequence
+
+        So need to reset some auxiliary logging book-keeping information
+        """
+
+        MemoryAgent.__init__(self, obs_spec=self.obs_spec, act_spec=self.act_spec, traj_len=self.traj_len, batch_sz=self.batch_sz)
+        self.logger.reset()
+
     def make_minimize_ops(self):
         ops = [self.loss_terms, self.grads_norm]
         if self.sess_mgr.training_enabled:

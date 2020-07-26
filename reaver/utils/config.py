@@ -1,5 +1,23 @@
 import os
 
+SUB_ENV_DICT = {"BuildMarines": 
+                                [     
+                                "BuildSupplyDepots",
+                                "BuildBarracks",
+                                "BuildMarinesWithBarracks",       
+                                "BuildMarines",
+                                # "BuildMarinesDepotBarracks",
+                                ],
+                "CollectMineralsAndGas":
+                                [
+                                "CollectMineralsAndGas",  # 420s
+                                "BuildRefinery",
+                                "CollectGasWithRefineries",
+                                "BuildRefineryAndCollectGas",
+                                "CollectMineralsAndGas",  # 420s
+                                ],
+                }
+
 SC2_MINIGAMES_ALIASES = {
     'beacon': 'MoveToBeacon',
     'shards': 'CollectMineralShards',

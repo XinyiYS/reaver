@@ -45,8 +45,9 @@ class HumanAIInteractionAgent(AdvantageActorCriticAgent):
         subagents_dir='subagents/',
         **kwargs,
     ):
+        args = kwargs['args'] if 'args' in kwargs else None #include the experimental args
         AdvantageActorCriticAgent.__init__(
-            self, obs_spec, act_spec, sess_mgr=sess_mgr, n_envs=n_envs)
+            self, obs_spec, act_spec, sess_mgr=sess_mgr, n_envs=n_envs, args=args)
 
         # since we are using separate session managers
         # we do not have to modify the a2c class at all

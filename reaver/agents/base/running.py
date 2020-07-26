@@ -3,6 +3,7 @@ import copy
 from . import Agent
 from reaver.envs.base import Env, MultiProcEnv
 from reaver.envs.sc2 import SC2Env
+from reaver.utils.config import SUB_ENV_DICT
 
 LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.agents.base.running> "
 class RunningAgent(Agent):
@@ -123,13 +124,15 @@ class SyncRunningAgent(RunningAgent):
                 #  subenv_steps already defined and initializied
 
 
-            for subenv, subenv_step, threshold, in zip(subenvs, subenv_steps, thresholds):
+            for i, (subenv, subenv_step, threshold) in enumerate(zip(subenvs, subenv_steps, thresholds)):
                 env = SC2Env(subenv, env.render, max_ep_len=env.max_ep_len)
                 print(LOGGING_MSG_HEADER + ": Creating and Running subenv : {} with maximum {} steps, and reward threshold is {}.".format(env.id, subenv_step, threshold))
                 env = self.wrap_env(env)
                 env.start()
                 try:
                     self.on_start()
+                    if i != 0:
+                        self.reset()
                     self._run(env, subenv_step, threshold)
                 except KeyboardInterrupt:
                     env.stop()
@@ -217,22 +220,3 @@ def HRL_thredhold(envId, BM, CMAG):
         return BM
     else:
         return CMAG
-
-
-SUB_ENV_DICT = {"BuildMarines": 
-                                [     
-                                "BuildSupplyDepots",
-                                "BuildBarracks",
-                                "BuildMarinesWithBarracks",       
-                                "BuildMarines",
-                                # "BuildMarinesDepotBarracks",
-                                ],
-                "CollectMineralsAndGas":
-                                [
-                                "CollectMineralsAndGas",  # 420s
-                                "BuildRefinery",
-                                "CollectGasWithRefineries",
-                                "BuildRefineryAndCollectGas",
-                                "CollectMineralsAndGas",  # 420s
-                                ],
-                }
