@@ -95,7 +95,7 @@ class ActorCriticAgent(MemoryAgent):
                 if subenvs:
                     from collections import defaultdict
                     self.subenv_dict = defaultdict(list)
-                    print("Attempting to create models for each individual subenvs: ", subenvs)
+                    print(LOGGING_MSG_HEADER + ": Creating models for each individual subenvs: ", subenvs)
 
                     for i, subenv in enumerate(subenvs):
                         subenv_model = model_fn(obs_spec, act_spec)
@@ -121,8 +121,9 @@ class ActorCriticAgent(MemoryAgent):
                         self.subenv_dict['train_ops'].append(subenv_optimizer.apply_gradients(
                             zip(grads, vars), global_step=sess_mgr.global_step))
                         self.subenv_dict['minimize_ops'].append(self.make_minimize_ops( subenv_id=i) ) 
-                    print("Successfully created models for each individual subenvs")
+                    print(LOGGING_MSG_HEADER + ": Successfully created models for each individual subenvs")
                 else:
+                    print(LOGGING_MSG_HEADER + ": Creating single model for the environment.")
 
                     self.model = model_fn(obs_spec, act_spec)
                     self.value = self.model.outputs[-1]

@@ -128,7 +128,7 @@ def main(argv):
     env_cls = rvr.envs.GymEnv if '-v' in args.env else rvr.envs.SC2Env
     env = env_cls(args.env, args.render, max_ep_len=args.max_ep_len)
 
-    if args.env in rvr.utils.config.SUB_ENV_DICT:
+    if args.HRL and args.env in rvr.utils.config.SUB_ENV_DICT:
       subenvs = rvr.utils.config.SUB_ENV_DICT[args.env]
     else:
       subenvs = []
@@ -136,7 +136,7 @@ def main(argv):
     agent = rvr.agents.registry[args.agent](
         env.obs_spec(), env.act_spec(), 
         sess_mgr=sess_mgr, 
-        n_envs=args.n_envs, subagents_dir=args.subagents_dir, args=args,
+        n_envs=args.n_envs, args=args,
         subenvs=subenvs)
 
 

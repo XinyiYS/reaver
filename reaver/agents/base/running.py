@@ -87,7 +87,7 @@ class SyncRunningAgent(RunningAgent):
 
     def run(self, env: Env, n_steps=1000000):
 
-        if self.args.test or (env.id not in SUB_ENV_DICT):
+        if self.args.test or (env.id not in SUB_ENV_DICT) or (not self.args.HRL):
             # either testing or training without HRL at all
             # or the env selected does not have the subenvs
             if not self.args.HRL:
