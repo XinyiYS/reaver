@@ -76,6 +76,14 @@ class Experiment:
         with open(self.experiment_config_path, 'a') as ex_cfg_file:                
             ex_cfg_file.write(json.dumps(ex_config_dict))
 
-    def save_model_summary(self, model):
-        with open(self.path + '/' + 'model_summary.txt', 'w') as fl:
-            model.summary(print_fn=lambda line: print(line, file=fl))
+    def save_model_summary(self, model, **kwargs):
+        if model:
+            with open(self.path + '/' + 'model_summary.txt', 'w') as fl:
+                model.summary(print_fn=lambda line: print(line, file=fl))
+        else:
+            assert 'models' in kwargs and 'subenvs' in kwargs, "Missing models and subenvs"
+            models = kwargs['models']
+            subenvs = kwargs['subenvs']
+            for model, subenv  in zip(models, subenvs):
+                with open(self.path + '/' + subenv + '_model_summary.txt', 'w') as fl:
+                    model.summary(print_fn=lambda line: print(line, file=fl))

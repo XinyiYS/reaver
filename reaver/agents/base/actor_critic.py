@@ -1,3 +1,4 @@
+import copy
 import gin.tf
 import numpy as np
 import tensorflow.compat.v1 as tf
@@ -58,15 +59,21 @@ class ActorCriticAgent(MemoryAgent):
         clip_grads_norm=DEFAULTS['clip_grads_norm'],
         normalize_returns=DEFAULTS['normalize_returns'],
         normalize_advantages=DEFAULTS['normalize_advantages'],
+        **kwargs,
     ):
         MemoryAgent.__init__(self, obs_spec, act_spec, traj_len, batch_sz)
 
         if not sess_mgr:
             sess_mgr = SessionManager()
 
-        if not optimizer:
+        subenvs = kwargs['subenvs'] if 'subenvs' in kwargs else [None]
+
+        if optimizer:
+            optimizers = [copy.deepcopy(optimizer) for subenv in subenvs]
+        else:
             optimizer = tf.train.AdamOptimizer(
                 learning_rate=DEFAULTS['learning_rate'])
+            optimizers = [tf.train.AdamOptimizer(learning_rate=DEFAULTS['learning_rate']) for subenv in subenvs]
 
         self.sess_mgr = sess_mgr
         self.model_variable_scope = self.sess_mgr.model_variable_scope
@@ -84,19 +91,52 @@ class ActorCriticAgent(MemoryAgent):
         with sess_mgr.sess.graph.as_default():
             # note this is name_scope as opposed to variable_scope, important
             with tf.name_scope(self.sess_mgr.main_tf_vs.original_name_scope):
-                self.model = model_fn(obs_spec, act_spec)
-                self.value = self.model.outputs[-1]
-                self.policy = policy_cls(act_spec, self.model.outputs[:-1])
-                self.loss_op, self.loss_terms, self.loss_inputs = self.loss_fn()
+                
+                if subenvs:
+                    from collections import defaultdict
+                    self.subenv_dict = defaultdict(list)
+                    print("Attempting to create models for each individual subenvs: ", subenvs)
 
-                grads, vars = zip(*optimizer.compute_gradients(self.loss_op))
-                self.grads_norm = tf.global_norm(grads)
-                if clip_grads_norm > 0.:
-                    grads, _ = tf.clip_by_global_norm(
-                        grads, clip_grads_norm, self.grads_norm)
-                self.train_op = optimizer.apply_gradients(
-                    zip(grads, vars), global_step=sess_mgr.global_step)
-                self.minimize_ops = self.make_minimize_ops()
+                    for i, subenv in enumerate(subenvs):
+                        subenv_model = model_fn(obs_spec, act_spec)
+                        self.subenv_dict['models'].append(subenv_model)
+
+                        subenv_value = subenv_model.outputs[-1]
+                        self.subenv_dict['values'].append(subenv_value)
+                        subenv_policy = policy_cls(act_spec, subenv_model.outputs[:-1])
+                        self.subenv_dict['policies'].append(subenv_policy)
+
+                        subenv_loss_op, subenv_loss_terms, subenv_loss_inputs = self.loss_fn(policy=subenv_policy, value=subenv_value)
+                        self.subenv_dict['loss_ops'].append(subenv_loss_op)
+                        self.subenv_dict['loss_terms'].append(subenv_loss_terms)
+                        self.subenv_dict['loss_inputs'].append(subenv_loss_inputs)
+
+                        subenv_optimizer = optimizers[i]
+                        grads, vars = zip(*subenv_optimizer.compute_gradients(subenv_loss_op))
+
+                        subenv_grads_norm = tf.global_norm(grads)
+                        self.subenv_dict['grads_norms'].append(subenv_grads_norm)
+                        if clip_grads_norm > 0 :
+                            grads, _ = tf.clip_by_global_norm(grads, clip_grads_norm, subenv_grads_norm)
+                        self.subenv_dict['train_ops'].append(subenv_optimizer.apply_gradients(
+                            zip(grads, vars), global_step=sess_mgr.global_step))
+                        self.subenv_dict['minimize_ops'].append(self.make_minimize_ops( subenv_id=i) ) 
+                    print("Successfully created models for each individual subenvs")
+                else:
+
+                    self.model = model_fn(obs_spec, act_spec)
+                    self.value = self.model.outputs[-1]
+                    self.policy = policy_cls(act_spec, self.model.outputs[:-1])
+                    self.loss_op, self.loss_terms, self.loss_inputs = self.loss_fn()
+
+                    grads, vars = zip(*optimizer.compute_gradients(self.loss_op))
+                    self.grads_norm = tf.global_norm(grads)
+                    if clip_grads_norm > 0.:
+                        grads, _ = tf.clip_by_global_norm(
+                            grads, clip_grads_norm, self.grads_norm)
+                    self.train_op = optimizer.apply_gradients(
+                        zip(grads, vars), global_step=sess_mgr.global_step)
+                    self.minimize_ops = self.make_minimize_ops()
 
         print(LOGGING_MSG_HEADER + " : main_model setup on sess and graph complete")
         sess_mgr.restore_or_init()
@@ -107,37 +147,56 @@ class ActorCriticAgent(MemoryAgent):
 
         self.logger = Logger()
 
-    def get_action_and_value(self, obs):
-        return self.sess_mgr.run([self.policy.sample, self.value], self.model.inputs, obs)
+    def get_action_and_value(self, obs, subenv_id=None):
+        if subenv_id is None:
+            return self.sess_mgr.run([self.policy.sample, self.value], self.model.inputs, obs)
+        else:
+            return self.sess_mgr.run([ self.subenv_dict['policies'][subenv_id].sample, self.subenv_dict['values'][subenv_id]],  self.subenv_dict['models'][subenv_id].inputs, obs)
 
-    def get_action(self, obs):
-        return self.sess_mgr.run(self.policy.sample, self.model.inputs, obs)
 
-    def on_step(self, step, obs, action, reward, done, value=None):
+    def get_action(self, obs, subenv_id=None):
+        if subenv_id is None:
+            return self.sess_mgr.run(self.policy.sample, self.model.inputs, obs)
+        else:
+            return self.sess_mgr.run(self.subenv_dict['policies'][subenv_id].sample,  self.subenv_dict['models'][subenv_id].inputs, obs)
+
+    def on_step(self, step, obs, action, reward, done, value=None, subenv_id=None):
         MemoryAgent.on_step(self, step, obs, action, reward, done, value)
         self.logger.on_step(step, reward, done)
 
         if not self.batch_ready():
             return
 
-        next_values = self.sess_mgr.run(
-            self.value, self.model.inputs, self.last_obs)
-        adv, returns = self.compute_advantages_and_returns(next_values)
+        if subenv_id is None:
+            next_values = self.sess_mgr.run(
+                self.value, self.model.inputs, self.last_obs)
+        else:
+            assert self.subenv_dict, "Missing subenv_dict implementation"
+            next_values = self.sess_mgr.run(
+                self.subenv_dict['values'][subenv_id], self.subenv_dict['models'][subenv_id].inputs, self.last_obs)
 
-        loss_terms, grads_norm = self.minimize(adv, returns)
+        adv, returns = self.compute_advantages_and_returns(next_values)
+        loss_terms, grads_norm = self.minimize(adv, returns, subenv_id=subenv_id)
 
         self.sess_mgr.on_update(self.n_batches)
         logs = self.logger.on_update(self.n_batches, loss_terms,
                               grads_norm, returns, adv, next_values)
         return logs
 
-    def minimize(self, advantages, returns):
+    def minimize(self, advantages, returns, subenv_id=None):
         inputs = self.obs + self.acts + [advantages, returns]
         inputs = [a.reshape(-1, *a.shape[2:]) for a in inputs]
-        tf_inputs = self.model.inputs + self.policy.inputs + self.loss_inputs
 
-        loss_terms, grads_norm, * \
-            _ = self.sess_mgr.run(self.minimize_ops, tf_inputs, inputs)
+        if subenv_id is None:
+            tf_inputs = self.model.inputs + self.policy.inputs + self.loss_inputs
+
+            loss_terms, grads_norm, * \
+                _ = self.sess_mgr.run(self.minimize_ops, tf_inputs, inputs)
+        else:
+            assert self.subenv_dict, "Missing subenv_dict implementation"
+            tf_inputs = self.subenv_dict['models'][subenv_id].inputs + self.subenv_dict['policies'][subenv_id].inputs + self.subenv_dict['loss_inputs'][subenv_id]
+            loss_terms, grads_norm, * \
+                _ = self.sess_mgr.run(self.subenv_dict['minimize_ops'][subenv_id], tf_inputs, inputs)
 
         return loss_terms, grads_norm
 
@@ -190,14 +249,25 @@ class ActorCriticAgent(MemoryAgent):
         MemoryAgent.__init__(self, obs_spec=self.obs_spec, act_spec=self.act_spec, traj_len=self.traj_len, batch_sz=self.batch_sz)
         self.logger.reset()
 
-    def make_minimize_ops(self):
-        ops = [self.loss_terms, self.grads_norm]
-        if self.sess_mgr.training_enabled:
-            ops.append(self.train_op)
-        # appending extra model update ops (e.g. running stats)
-        # note: this will most likely break if model.compile() is used
-        ops.extend(self.model.get_updates_for(None))
-        return ops
+    def make_minimize_ops(self, subenv_id=None):
+
+        if subenv_id is None:
+            ops = [self.loss_terms, self.grads_norm]
+            if self.sess_mgr.training_enabled:
+                ops.append(self.train_op)
+            # appending extra model update ops (e.g. running stats)
+            # note: this will most likely break if model.compile() is used
+            ops.extend(self.model.get_updates_for(None))
+            return ops
+
+        else:
+            assert self.subenv_dict, "self.subenv_dict is None or empty"
+            loss_terms = self.subenv_dict['loss_terms'][subenv_id]
+            grads_norm = self.subenv_dict['grads_norms'][subenv_id]
+            ops = [loss_terms, grads_norm]
+            if self.sess_mgr.training_enabled:
+                ops.append(self.subenv_dict['train_ops'][subenv_id])
+            return ops
 
     @staticmethod
     def discounted_cumsum(x, discount):

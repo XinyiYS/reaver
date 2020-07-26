@@ -128,25 +128,34 @@ def main(argv):
     env_cls = rvr.envs.GymEnv if '-v' in args.env else rvr.envs.SC2Env
     env = env_cls(args.env, args.render, max_ep_len=args.max_ep_len)
 
+    if args.env in rvr.utils.config.SUB_ENV_DICT:
+      subenvs = rvr.utils.config.SUB_ENV_DICT[args.env]
+    else:
+      subenvs = []
     # use args.env and args.agent as the model_variable_scope
     agent = rvr.agents.registry[args.agent](
         env.obs_spec(), env.act_spec(), 
         sess_mgr=sess_mgr, 
-        n_envs=args.n_envs, subagents_dir=args.subagents_dir, args=args)
+        n_envs=args.n_envs, subagents_dir=args.subagents_dir, args=args,
+        subenvs=subenvs)
+
+
     agent.logger = rvr.utils.StreamLogger(
         args.n_envs, args.log_freq, args.log_eps_avg, sess_mgr, expt.log_path)
 
     if sess_mgr.training_enabled:
         expt.save_gin_config()
         expt.save_experiment_config()
-        expt.save_model_summary(agent.model)
+        if subenvs:
+          expt.save_model_summary(model=None, models=agent.subenv_dict['models'], subenvs=subenvs)
+        else:
+          expt.save_model_summary(agent.model)
 
     print("{}: initialized env is {}:{}".format(LOGGING_MSG_HEADER, env, env.id))
     print(LOGGING_MSG_HEADER + " Sample efficiency related info: batch_size is {}, trajectory length is {}, specified number of updates is {}, so number of samples is {}"
       .format(agent.batch_sz, agent.traj_len, args.n_updates, agent.batch_sz * agent.traj_len * args.n_updates ))
     agent.run(env, args.n_updates * agent.traj_len *
               agent.batch_sz // args.n_envs)
-
 
 if __name__ == '__main__':
     flags.mark_flag_as_required('env')

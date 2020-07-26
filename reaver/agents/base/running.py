@@ -41,15 +41,16 @@ class RunningAgent(Agent):
             # self.on_finish()
     '''
 
-    def _run(self, env, n_steps, terminating_threshold=None):
+    def _run(self, env, n_steps, terminating_threshold=None, subenv_id=None):
         obs, *_ = env.reset()
         obs = [o.copy() for o in obs]
         print(LOGGING_MSG_HEADER + " : running {} parallel env(s)".format(str(len(env.envs))))
         for step in range(self.start_step, self.start_step + n_steps):
-            action, value = self.get_action_and_value(obs)
+            action, value = self.get_action_and_value(obs, subenv_id=subenv_id)
             self.next_obs, reward, done = env.step(action)
             # self.on_step(step, obs, action, reward, done, value)
-            logs = self.on_step(step, obs, action, reward, done, value)
+            # logs = self.on_step(step, obs, action, reward, done, value)
+            logs = self.on_step(step, obs, action, reward, done, value, subenv_id=subenv_id)
             obs = [o.copy() for o in self.next_obs]
 
             #check terminating_conditions
@@ -57,7 +58,6 @@ class RunningAgent(Agent):
             if logs and terminating_threshold and logs['ep_rews_mean'] >= terminating_threshold:
                 print(LOGGING_MSG_HEADER + ": Successfully reached the stopping reward threshold {}".format(terminating_threshold))
                 break
-
         env.stop()
 
     def get_action_and_value(self, obs):
@@ -133,7 +133,7 @@ class SyncRunningAgent(RunningAgent):
                     self.on_start()
                     if i != 0:
                         self.reset()
-                    self._run(env, subenv_step, threshold)
+                    self._run(env, subenv_step, threshold, subenv_id=i)
                 except KeyboardInterrupt:
                     env.stop()
                     break
