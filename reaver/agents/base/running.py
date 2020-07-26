@@ -87,18 +87,32 @@ class SyncRunningAgent(RunningAgent):
 
     def run(self, env: Env, n_steps=1000000):
 
-        if self.args.test or (not self.args.HRL) or (env.id not in SUB_ENV_DICT):
+        if self.args.test or (env.id not in SUB_ENV_DICT):
             # either testing or training without HRL at all
             # or the env selected does not have the subenvs
-            env = self.wrap_env(env)
-            env.start()
-            try:
-                self.on_start()
-                self._run(env, n_steps)
-            except KeyboardInterrupt:
-                env.stop()
+            if not self.args.HRL:
+                env = self.wrap_env(env)
+                env.start()
+                try:
+                    self.on_start()
+                    self._run(env, n_steps)
+                except KeyboardInterrupt:
+                    env.stop()
 
-            self.on_finish()
+                self.on_finish()
+
+            # testing with HRL and separate subenvs
+            else:
+                env = self.wrap_env(env)
+                env.start()
+                subenvs = SUB_ENV_DICT[env.id]
+                print(LOGGING_MSG_HEADER + ": Testing the {} with combined subpolicies trained seperately from subenvs-{}".format(env.id, subenvs))
+                try:
+                    self.on_start()
+                    self._run_subenvs(env, n_steps, subenvs=subenvs)
+                except KeyboardInterrupt:
+                    env.stop()
+                self.on_finish()
 
         else:
 
@@ -153,6 +167,31 @@ class SyncRunningAgent(RunningAgent):
           env.render = render
 
           return MultiProcEnv(envs)
+
+
+    def _run_subenvs(self, env, n_steps, subenvs=[]):
+        obs, *_ = env.reset()
+        obs = [o.copy() for o in obs]
+        print(LOGGING_MSG_HEADER + " : running {} parallel env(s)".format(str(len(env.envs))))
+
+        # take turns for the subpolicies to to take actions
+        # each act for 10/50/100 steps
+        # this 1280 is a magic number for BuildMarines minigame
+        turns = 1280 // len(subenvs)
+        print(LOGGING_MSG_HEADER + " : each subpolicy takes {} steps of actions and taking turns".format(turns))
+
+        for step in range(self.start_step, self.start_step + n_steps):
+            
+            subenv_id = (step - self.start_step) // turns % len(subenvs)
+
+            action, value = self.get_action_and_value(obs, subenv_id=subenv_id)
+            self.next_obs, reward, done = env.step(action)
+            
+            logs = self.on_step(step, obs, action, reward, done, value, subenv_id=subenv_id)
+            obs = [o.copy() for o in self.next_obs]
+
+        env.stop()
+
 
 '''
 wrap_env and get_subenvs for concurrent and parallel subenvs
