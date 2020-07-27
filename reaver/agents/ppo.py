@@ -55,6 +55,7 @@ class ProximalPolicyOptimizationAgent(SyncRunningAgent, ActorCriticAgent):
         self.subenvs = subenvs = kwargs['subenvs'] if 'subenvs' in kwargs else None # include specifed subenvs
 
         kwargs = {k: v for k, v in locals().items() if k in DEFAULTS and DEFAULTS[k] != v}
+        kwargs['subenvs'] = subenvs
 
         self.n_epochs = n_epochs
         self.minibatch_sz = minibatch_sz
