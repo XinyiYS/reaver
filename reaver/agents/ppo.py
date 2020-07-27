@@ -52,6 +52,7 @@ class ProximalPolicyOptimizationAgent(SyncRunningAgent, ActorCriticAgent):
         **kwargs,
     ):
         args = kwargs['args'] if 'args' in kwargs else None #include the experimental args
+        self.subenvs = subenvs = kwargs['subenvs'] if 'subenvs' in kwargs else None # include specifed subenvs
 
         kwargs = {k: v for k, v in locals().items() if k in DEFAULTS and DEFAULTS[k] != v}
 
@@ -66,13 +67,18 @@ class ProximalPolicyOptimizationAgent(SyncRunningAgent, ActorCriticAgent):
 
         self.start_step = self.start_step // self.n_epochs
 
-    def minimize(self, advantages, returns):
+    def minimize(self, advantages, returns, subenv_id=None):
         inputs = [a.reshape(-1, *a.shape[2:]) for a in self.obs + self.acts]
-        tf_inputs = self.model.inputs + self.policy.inputs
-        logli_old = self.sess_mgr.run(self.policy.logli, tf_inputs, inputs)
+
+        if subenv_id is None:
+            tf_inputs = self.model.inputs + self.policy.inputs + self.loss_inputs
+            logli_old = self.sess_mgr.run(self.policy.logli, tf_inputs, inputs)
+        else:
+            assert self.subenv_dict, "Missing subenv_dict implementation"
+            tf_inputs = self.subenv_dict['models'][subenv_id].inputs + self.subenv_dict['policies'][subenv_id].inputs + self.subenv_dict['loss_inputs'][subenv_id]
+            logli_old = self.sess_mgr.run(self.subenv_dict['policies'][subenv_id].logli, tf_inputs, inputs)
 
         inputs += [advantages.flatten(), returns.flatten(), logli_old, self.values.flatten()]
-        tf_inputs += self.loss_inputs
 
         # TODO: rewrite this with persistent tensors to load data only once into the graph
         loss_terms = grads_norm = None
@@ -83,28 +89,53 @@ class ProximalPolicyOptimizationAgent(SyncRunningAgent, ActorCriticAgent):
             for i in range(n_samples // self.minibatch_sz):
                 idxs, idxe = i*self.minibatch_sz, (i+1)*self.minibatch_sz
                 minibatch = [inpt[indices[idxs:idxe]] for inpt in inputs]
-                loss_terms, grads_norm, *_ = self.sess_mgr.run(self.minimize_ops, tf_inputs, minibatch)
+                
+                if subenv_id is None:
+                    loss_terms, grads_norm, *_ = self.sess_mgr.run(self.minimize_ops, tf_inputs, minibatch)
+                else:
+                    assert self.subenv_dict, "Missing subenv_dict implementation"
+                    loss_terms, grads_norm, *_ = self.sess_mgr.run(self.subenv_dict['minimize_ops'][subenv_id], tf_inputs, minibatch)
 
         return loss_terms, grads_norm
 
-    def loss_fn(self):
+    def loss_fn(self, policy=None, value=None):
         adv = tf.placeholder(tf.float32, [None], name="advantages")
         returns = tf.placeholder(tf.float32, [None], name="returns")
         logli_old = tf.placeholder(tf.float32, [None], name="logli_old")
         value_old = tf.placeholder(tf.float32, [None], name="value_old")
 
-        ratio = tf.exp(self.policy.logli - logli_old)
-        clipped_ratio = tf.clip_by_value(ratio, 1-self.clip_ratio, 1+self.clip_ratio)
+        if not self.subenvs:
+            ratio = tf.exp(self.policy.logli - logli_old)
+            clipped_ratio = tf.clip_by_value(ratio, 1-self.clip_ratio, 1+self.clip_ratio)
 
-        value_err = (self.value - returns)**2
-        if self.clip_value > 0.0:
-            clipped_value = tf.clip_by_value(self.value, value_old-self.clip_value, value_old+self.clip_value)
-            clipped_value_err = (clipped_value - returns)**2
-            value_err = tf.maximum(value_err, clipped_value_err)
+            value_err = (self.value - returns)**2
+            if self.clip_value > 0.0:
+                clipped_value = tf.clip_by_value(self.value, value_old-self.clip_value, value_old+self.clip_value)
+                clipped_value_err = (clipped_value - returns)**2
+                value_err = tf.maximum(value_err, clipped_value_err)
 
-        policy_loss = -tf.reduce_mean(tf.minimum(adv * ratio, adv * clipped_ratio))
-        value_loss = tf.reduce_mean(value_err) * self.value_coef
-        entropy_loss = tf.reduce_mean(self.policy.entropy) * self.entropy_coef
+            policy_loss = -tf.reduce_mean(tf.minimum(adv * ratio, adv * clipped_ratio))
+            value_loss = tf.reduce_mean(value_err) * self.value_coef
+            entropy_loss = tf.reduce_mean(self.policy.entropy) * self.entropy_coef
+
+        else:
+            assert policy is not None and value is not None, "Missing variables representing <policy> and <value>"
+
+            ratio = tf.exp(policy.logli - logli_old)
+            clipped_ratio = tf.clip_by_value(ratio, 1-self.clip_ratio, 1+self.clip_ratio)
+
+
+            value_err = (value - returns)**2
+            if self.clip_value > 0.0:
+                clipped_value = tf.clip_by_value(value, value_old-self.clip_value, value_old+self.clip_value)
+                clipped_value_err = (clipped_value - returns)**2
+                value_err = tf.maximum(value_err, clipped_value_err)
+
+            policy_loss = -tf.reduce_mean(tf.minimum(adv * ratio, adv * clipped_ratio))
+            value_loss = tf.reduce_mean(value_err) * self.value_coef
+            entropy_loss = tf.reduce_mean(policy.entropy) * self.entropy_coef
+
+
         # we want to reduce policy and value errors, and maximize entropy
         # but since optimizer is minimizing the signs are opposite
         full_loss = policy_loss + value_loss - entropy_loss
