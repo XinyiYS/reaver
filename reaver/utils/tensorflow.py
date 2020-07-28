@@ -14,9 +14,10 @@ LOGGING_MSG_HEADER = "LOGGING FROM <reaver.reaver.utils.tensorflow> "
 
 
 class SessionManager:
-    def __init__(self, sess=None, base_path='results/', checkpoint_freq=100,
+    def __init__(self, sess=None, base_path='results/', checkpoint_freq=100, agent='a2c',
                  training_enabled=True, model_variable_scope=None, 
-                 restore_mix=False, env_name=None, new_env_name=None):
+                 restore_mix=False, env_name=None, new_env_name=None,
+                 HRL=None):
         if not sess:
             config = tf.ConfigProto(allow_soft_placement=True)
             config.gpu_options.allow_growth = True
@@ -42,8 +43,10 @@ class SessionManager:
                 self.global_step = tf.train.get_or_create_global_step()
                 self.summary_writer = tf.summary.FileWriter(self.summaries_path)
 
+        self.agent = agent
+        self.HRL = HRL
         self.main_tf_vs = main_tf_vs  # a cleaner way to pass variable_scope
-        self.model_variable_scope = model_variable_scope
+        self.model_variable_scope = model_variable_scope 
 
     def restore_or_init(self):
         # main_model saver
@@ -159,7 +162,9 @@ class SessionManager:
         For the given name, list all the available checkpoints with the most recent in front.
         """
         name = name or self.base_path.split('/', 1)[1].split('_')[0]
-        name = name + '_' # append an _ in the end to distinguish between maps with same prefix
+        name = name + "_{}".format(self.agent)
+        if self.HRL:
+            name = name + "_HRL-{}".format(self.HRL)
         print("{}: env name of the checkpoint loading from is <{}>".format(LOGGING_MSG_HEADER,  name))
         print("{}: checking dir in this format <{}> for checkpoints".format(LOGGING_MSG_HEADER, os.path.join(results_dir, name)))
 
