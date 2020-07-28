@@ -48,6 +48,7 @@ def get_score_data(log_file_path):
             
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
+    # logdir is the path towards the stderr.log during training phase
     parser.add_argument('logdir', type=str)
     args = parser.parse_args()
 
@@ -56,17 +57,22 @@ if __name__ == '__main__':
     plt.style.use('seaborn')
     mpl.rcParams['figure.figsize'] = (10, 10)
 
-    n_rows = 4
-
-    plt.style.use('seaborn')
+    n_rows = 2
 
     for idx, (title, list) in enumerate(score_dict.items()):
-        plt.subplot(n_rows,1, 1 + idx)
-        plt.plot(list)
-        plt.title(title)
-        if idx == 3:
-            plt.xlabel("Trainning trajectory")
-            plt.ylabel("Reward Received")
+            plt.subplot(n_rows, 2, 1 + idx)
+            plt.plot(list)
+            plt.title(title, fontsize = 18)
+            if idx == 0:
+                plt.ylabel("Reward Received", fontsize = 18)
+            elif idx == 2:
+                plt.ylabel("Reward Received", fontsize = 18)
+                plt.xlabel("# of episodes", fontsize = 18)
+            elif idx == 3:
+                plt.xlabel("# of episodes", fontsize = 18)
+
+           
+            
 
     plt.tight_layout()
     plt.show()
