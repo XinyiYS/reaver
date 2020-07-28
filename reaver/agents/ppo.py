@@ -52,7 +52,7 @@ class ProximalPolicyOptimizationAgent(SyncRunningAgent, ActorCriticAgent):
         **kwargs,
     ):
         args = kwargs['args'] if 'args' in kwargs else None #include the experimental args
-        self.subenvs = subenvs = kwargs['subenvs'] if 'subenvs' in kwargs else None # include specifed subenvs
+        self.subenvs = subenvs = kwargs['subenvs'] if 'subenvs' in kwargs else [] # include specifed subenvs
 
         kwargs = {k: v for k, v in locals().items() if k in DEFAULTS and DEFAULTS[k] != v}
         kwargs['subenvs'] = subenvs
@@ -71,13 +71,13 @@ class ProximalPolicyOptimizationAgent(SyncRunningAgent, ActorCriticAgent):
     def minimize(self, advantages, returns, subenv_id=None):
         inputs = [a.reshape(-1, *a.shape[2:]) for a in self.obs + self.acts]
 
-        if subenv_id is None:
-            tf_inputs = self.model.inputs + self.policy.inputs + self.loss_inputs
-            logli_old = self.sess_mgr.run(self.policy.logli, tf_inputs, inputs)
-        else:
+        if self.subenvs and subenv_id is not None:
             assert self.subenv_dict, "Missing subenv_dict implementation"
             tf_inputs = self.subenv_dict['models'][subenv_id].inputs + self.subenv_dict['policies'][subenv_id].inputs + self.subenv_dict['loss_inputs'][subenv_id]
             logli_old = self.sess_mgr.run(self.subenv_dict['policies'][subenv_id].logli, tf_inputs, inputs)
+        else:
+            tf_inputs = self.model.inputs + self.policy.inputs + self.loss_inputs
+            logli_old = self.sess_mgr.run(self.policy.logli, tf_inputs, inputs)
 
         inputs += [advantages.flatten(), returns.flatten(), logli_old, self.values.flatten()]
 
@@ -91,11 +91,11 @@ class ProximalPolicyOptimizationAgent(SyncRunningAgent, ActorCriticAgent):
                 idxs, idxe = i*self.minibatch_sz, (i+1)*self.minibatch_sz
                 minibatch = [inpt[indices[idxs:idxe]] for inpt in inputs]
                 
-                if subenv_id is None:
-                    loss_terms, grads_norm, *_ = self.sess_mgr.run(self.minimize_ops, tf_inputs, minibatch)
-                else:
+                if self.subenvs and subenv_id is not None:
                     assert self.subenv_dict, "Missing subenv_dict implementation"
                     loss_terms, grads_norm, *_ = self.sess_mgr.run(self.subenv_dict['minimize_ops'][subenv_id], tf_inputs, minibatch)
+                else:
+                    loss_terms, grads_norm, *_ = self.sess_mgr.run(self.minimize_ops, tf_inputs, minibatch)
 
         return loss_terms, grads_norm
 
@@ -124,7 +124,6 @@ class ProximalPolicyOptimizationAgent(SyncRunningAgent, ActorCriticAgent):
 
             ratio = tf.exp(policy.logli - logli_old)
             clipped_ratio = tf.clip_by_value(ratio, 1-self.clip_ratio, 1+self.clip_ratio)
-
 
             value_err = (value - returns)**2
             if self.clip_value > 0.0:

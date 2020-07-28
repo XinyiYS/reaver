@@ -41,7 +41,7 @@ flags.DEFINE_multi_string(
 
 
 flags.DEFINE_string('HRL', None,
-                  'Specify HRL\'s structure/algorithm. Must be one of (None, systematic, random, human). If None, not using HRL. '
+                  'Specify HRL\'s structure/algorithm. Must be one of (None, systematic, random, human, sequential, separate). If None, not using HRL. '
                   'If experiment not specified then last modified is used.')
 
 flags.DEFINE_bool('restore', False,

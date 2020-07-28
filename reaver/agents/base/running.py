@@ -116,13 +116,13 @@ class SyncRunningAgent(RunningAgent):
 
         else:
 
-            assert self.args.HRL in ['human', 'systematic', 'random']
+            assert self.args.HRL in ['human', 'systematic', 'random', 'sequential', 'separate']
             subenvs = SUB_ENV_DICT[env.id]
             print(LOGGING_MSG_HEADER + "： Subenvs are: ", subenvs)
             subenv_steps = [n_steps//len(subenvs) for subenv in subenvs]
             thresholds = [None for subenv in subenvs]
 
-            if self.args.HRL == 'human':
+            if self.args.HRL in ['human', 'sequential', 'separate'] :
                 thresholds = HRL_thredhold(env.id)
                 print(LOGGING_MSG_HEADER + "： Reward thresholds are: ", thresholds)
 

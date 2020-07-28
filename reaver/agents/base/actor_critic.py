@@ -66,7 +66,7 @@ class ActorCriticAgent(MemoryAgent):
         if not sess_mgr:
             sess_mgr = SessionManager()
 
-        subenvs = kwargs['subenvs'] if 'subenvs' in kwargs else [None]
+        self.subenvs = subenvs = kwargs['subenvs'] if 'subenvs' in kwargs else []
 
         if optimizer:
             optimizers = [copy.deepcopy(optimizer) for subenv in subenvs]
@@ -149,17 +149,16 @@ class ActorCriticAgent(MemoryAgent):
         self.logger = Logger()
 
     def get_action_and_value(self, obs, subenv_id=None):
-        if subenv_id is None:
-            return self.sess_mgr.run([self.policy.sample, self.value], self.model.inputs, obs)
+        if self.subenvs and subenv_id is not None:
+            return self.sess_mgr.run([self.subenv_dict['policies'][subenv_id].sample, self.subenv_dict['values'][subenv_id]],  self.subenv_dict['models'][subenv_id].inputs, obs)
         else:
-            return self.sess_mgr.run([ self.subenv_dict['policies'][subenv_id].sample, self.subenv_dict['values'][subenv_id]],  self.subenv_dict['models'][subenv_id].inputs, obs)
-
+            return self.sess_mgr.run([self.policy.sample, self.value], self.model.inputs, obs)
 
     def get_action(self, obs, subenv_id=None):
-        if subenv_id is None:
-            return self.sess_mgr.run(self.policy.sample, self.model.inputs, obs)
-        else:
+        if self.subenvs and subenv_id is not None:
             return self.sess_mgr.run(self.subenv_dict['policies'][subenv_id].sample,  self.subenv_dict['models'][subenv_id].inputs, obs)
+        else:
+            return self.sess_mgr.run(self.policy.sample, self.model.inputs, obs)
 
     def on_step(self, step, obs, action, reward, done, value=None, subenv_id=None):
         MemoryAgent.on_step(self, step, obs, action, reward, done, value)
@@ -168,13 +167,14 @@ class ActorCriticAgent(MemoryAgent):
         if not self.batch_ready():
             return
 
-        if subenv_id is None:
-            next_values = self.sess_mgr.run(
-                self.value, self.model.inputs, self.last_obs)
-        else:
+        if self.subenvs and subenv_id is not None:
             assert self.subenv_dict, "Missing subenv_dict implementation"
             next_values = self.sess_mgr.run(
                 self.subenv_dict['values'][subenv_id], self.subenv_dict['models'][subenv_id].inputs, self.last_obs)
+        else:
+                next_values = self.sess_mgr.run(
+                    self.value, self.model.inputs, self.last_obs)
+
 
         adv, returns = self.compute_advantages_and_returns(next_values)
         loss_terms, grads_norm = self.minimize(adv, returns, subenv_id=subenv_id)
@@ -188,16 +188,17 @@ class ActorCriticAgent(MemoryAgent):
         inputs = self.obs + self.acts + [advantages, returns]
         inputs = [a.reshape(-1, *a.shape[2:]) for a in inputs]
 
-        if subenv_id is None:
-            tf_inputs = self.model.inputs + self.policy.inputs + self.loss_inputs
 
-            loss_terms, grads_norm, * \
-                _ = self.sess_mgr.run(self.minimize_ops, tf_inputs, inputs)
-        else:
+        if self.subenvs and subenv_id is not None:
             assert self.subenv_dict, "Missing subenv_dict implementation"
             tf_inputs = self.subenv_dict['models'][subenv_id].inputs + self.subenv_dict['policies'][subenv_id].inputs + self.subenv_dict['loss_inputs'][subenv_id]
             loss_terms, grads_norm, * \
                 _ = self.sess_mgr.run(self.subenv_dict['minimize_ops'][subenv_id], tf_inputs, inputs)
+
+        else:
+            tf_inputs = self.model.inputs + self.policy.inputs + self.loss_inputs
+            loss_terms, grads_norm, * \
+                _ = self.sess_mgr.run(self.minimize_ops, tf_inputs, inputs)
 
         return loss_terms, grads_norm
 
@@ -252,22 +253,21 @@ class ActorCriticAgent(MemoryAgent):
 
     def make_minimize_ops(self, subenv_id=None):
 
-        if subenv_id is None:
-            ops = [self.loss_terms, self.grads_norm]
-            if self.sess_mgr.training_enabled:
-                ops.append(self.train_op)
-            # appending extra model update ops (e.g. running stats)
-            # note: this will most likely break if model.compile() is used
-            ops.extend(self.model.get_updates_for(None))
-            return ops
-
-        else:
+        if self.subenvs and subenv_id is not None:
             assert self.subenv_dict, "self.subenv_dict is None or empty"
             loss_terms = self.subenv_dict['loss_terms'][subenv_id]
             grads_norm = self.subenv_dict['grads_norms'][subenv_id]
             ops = [loss_terms, grads_norm]
             if self.sess_mgr.training_enabled:
                 ops.append(self.subenv_dict['train_ops'][subenv_id])
+            return ops
+        else:
+            ops = [self.loss_terms, self.grads_norm]
+            if self.sess_mgr.training_enabled:
+                ops.append(self.train_op)
+            # appending extra model update ops (e.g. running stats)
+            # note: this will most likely break if model.compile() is used
+            ops.extend(self.model.get_updates_for(None))
             return ops
 
     @staticmethod
