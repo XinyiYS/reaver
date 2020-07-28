@@ -116,19 +116,24 @@ def main(argv):
     else:
         model_variable_scope = "{}_{}".format(str(args.env), str(args.agent))
 
+    if args.HRL:
+      model_variable_scope += '_HRL-{}'.format(args.HRL)
+
     sess_mgr = rvr.utils.tensorflow.SessionManager(sess,
                                                    expt.path,
                                                    args.ckpt_freq,
+                                                   args.agent,
                                                    model_variable_scope=model_variable_scope,
                                                    training_enabled=not args.test,
                                                    restore_mix=args.restore_mix,
                                                    env_name=args.experiment,
-                                                   new_env_name=args.env)
+                                                   new_env_name=args.env,
+                                                   HRL=args.HRL)
 
     env_cls = rvr.envs.GymEnv if '-v' in args.env else rvr.envs.SC2Env
     env = env_cls(args.env, args.render, max_ep_len=args.max_ep_len)
 
-    if args.HRL and args.env in rvr.utils.config.SUB_ENV_DICT:
+    if args.HRL=='separate' and args.env in rvr.utils.config.SUB_ENV_DICT:
       subenvs = rvr.utils.config.SUB_ENV_DICT[args.env]
     else:
       subenvs = []

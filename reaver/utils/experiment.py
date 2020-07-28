@@ -38,7 +38,11 @@ class Experiment:
 
     @property
     def full_name(self):
-        return '%s_%s_%s' % (self.env_name, self.agent_name, self.name)
+        if self.args.HRL:
+            return '%s_%s_HRL-%s_%s' % (self.env_name, self.agent_name, self.args.HRL, self.name)
+        else:
+            return '%s_%s_%s' % (self.env_name, self.agent_name, self.name)
+
 
     @property
     def path(self):
