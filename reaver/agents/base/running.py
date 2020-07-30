@@ -90,7 +90,7 @@ class SyncRunningAgent(RunningAgent):
         if self.args.test or (env.id not in SUB_ENV_DICT) or (not self.args.HRL):
             # either testing or training without HRL at all
             # or the env selected does not have the subenvs
-            if not self.args.HRL:
+            if not self.args.HRL or self.args.HRL != 'separate' :
                 env = self.wrap_env(env)
                 env.start()
                 try:
@@ -106,6 +106,7 @@ class SyncRunningAgent(RunningAgent):
                 env = self.wrap_env(env)
                 env.start()
                 subenvs = SUB_ENV_DICT[env.id]
+                print(LOGGING_MSG_HEADER + ": Ensure that you are testing models trained using the <HRL_separate> approach.")
                 print(LOGGING_MSG_HEADER + ": Testing the {} with combined subpolicies trained seperately from subenvs-{}".format(env.id, subenvs))
                 try:
                     self.on_start()
