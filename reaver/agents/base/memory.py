@@ -41,7 +41,7 @@ class MemoryAgent(RunningAgent):
         bs, be = self.batch_ptr, self.batch_ptr + reward.shape[0]
 
         self.dones[step, bs:be] = done
-        self.rewards[step, bs:be] = reward
+        self.rewards[step, bs:be] = reward * (0.977**step - 1)
 
         if value is not None:
             self.values[step, bs:be] = value

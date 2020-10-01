@@ -53,8 +53,8 @@ class RunningAgent(Agent):
             logs = self.on_step(step, obs, action, reward, done, value, subenv_id=subenv_id)
             obs = [o.copy() for o in self.next_obs]
 
-            #check terminating_conditions
-            # simple average
+            # check terminating_conditions
+            # simple running average
             if logs and terminating_threshold and logs['ep_rews_mean'] >= terminating_threshold:
                 print(LOGGING_MSG_HEADER + ": Successfully reached the stopping reward threshold {}".format(terminating_threshold))
                 break
@@ -177,7 +177,7 @@ class SyncRunningAgent(RunningAgent):
         # take turns for the subpolicies to to take actions
          
         # this 1280 is a magic number for testing minigame, need to be fixed
-        turns = 1280 // len(subenvs)
+        turns = self.traj_len * self.batch_sz // len(subenvs)
         print(LOGGING_MSG_HEADER + " : each subpolicy takes {} steps of actions and taking turns".format(turns))
 
         for step in range(self.start_step, self.start_step + n_steps):

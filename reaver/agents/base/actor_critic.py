@@ -62,6 +62,7 @@ class ActorCriticAgent(MemoryAgent):
         **kwargs,
     ):
         MemoryAgent.__init__(self, obs_spec, act_spec, traj_len, batch_sz)
+        print(LOGGING_MSG_HEADER +": the traj_len is {} and batch_sz is {}".format(traj_len, batch_sz))
 
         if not sess_mgr:
             sess_mgr = SessionManager()
@@ -84,6 +85,8 @@ class ActorCriticAgent(MemoryAgent):
         self.clip_rewards = clip_rewards
         self.normalize_returns = normalize_returns
         self.normalize_advantages = normalize_advantages
+        self.traj_len = traj_len
+        self.batch_sz= batch_sz
 
         print(LOGGING_MSG_HEADER + " : the current model_variable_scope is", self.model_variable_scope)
         # implement the a2c to support multiple subagents
@@ -172,8 +175,8 @@ class ActorCriticAgent(MemoryAgent):
             next_values = self.sess_mgr.run(
                 self.subenv_dict['values'][subenv_id], self.subenv_dict['models'][subenv_id].inputs, self.last_obs)
         else:
-                next_values = self.sess_mgr.run(
-                    self.value, self.model.inputs, self.last_obs)
+            next_values = self.sess_mgr.run(
+                self.value, self.model.inputs, self.last_obs)
 
 
         adv, returns = self.compute_advantages_and_returns(next_values)

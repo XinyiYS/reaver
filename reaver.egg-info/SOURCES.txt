@@ -48,5 +48,6 @@ reaver/utils/config.py
 reaver/utils/experiment.py
 reaver/utils/logger.py
 reaver/utils/plot.py
+reaver/utils/plot_subenv_rewards_BM.py
 reaver/utils/tensorflow.py
 reaver/utils/typing.py
