@@ -10,13 +10,17 @@ SUB_ENV_DICT = {"BuildMarines":
                                 ],
                 "CollectMineralsAndGas":
                                 [
+                                "CMAGWithRefineries",
+                                "CMAGWithRefineriesBuildSCVs",
+                                "CMAGBuildRefineriesBuildSCVs",
+                                "CMAGWithRefineriesBuildSCVs",
                                 "CollectMineralsAndGas",  # 420s
-                                "BuildSCVs",
-                                "BuildRefineryHighReward",
-                                "CollectGasWithRefineries",
-                                "BuildRefineryAndCollectGasHighReward",
-                                "BuildSCVs",
-                                "CollectMineralsAndGas",  # 420s
+                                # "BuildSCVs",
+                                # "BuildRefineryHighReward",
+                                # "CollectGasWithRefineries",
+                                # "BuildRefineryAndCollectGasHighReward",
+                                # "BuildSCVs",
+                                # "CollectMineralsAndGas",  # 420s
                                 ],
                 }
 

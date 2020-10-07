@@ -86,7 +86,7 @@ class ActorCriticAgent(MemoryAgent):
         self.normalize_returns = normalize_returns
         self.normalize_advantages = normalize_advantages
         self.traj_len = traj_len
-        self.batch_sz= batch_sz
+        self.batch_sz = batch_sz
 
         print(LOGGING_MSG_HEADER + " : the current model_variable_scope is", self.model_variable_scope)
         # implement the a2c to support multiple subagents

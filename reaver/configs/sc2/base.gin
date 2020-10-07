@@ -45,7 +45,7 @@ HAIAgent.policy_cls = @SC2MultiPolicy
 # params for HRL_threshold
 # ==========================================
 HRL_threshold.BM = [5,5,5,5]
-HRL_threshold.CMAG = [1000,10,1000,1000,1000,10,3500]
+HRL_threshold.CMAG = [1000,1000,1000,1000,3500]
 
 
 
